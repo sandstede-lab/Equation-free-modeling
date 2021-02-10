@@ -76,8 +76,7 @@ for iMic = 1:steps
     
     scatter(bif(end,iMic), std(r), 400, 'b.'); drawnow;
 end
-
-save('../data/microBif.mat', bif)
+save('../data/microBif.mat', 'bif')
 
 %% function to minimize with fsolve
 % var       - state to vary in order to minimize fw
