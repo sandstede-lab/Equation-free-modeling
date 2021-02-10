@@ -1,40 +1,23 @@
 function eqFreeDiffBifurcation()
+clear workspace;
+
 h = 2.4;                % optimal velocity parameter
 len = 60;              % length of the ring road
 numCars = 30;           % number of cars
 alignTo = 10;
 tskip = 100;            % times for evolving
 delta = 1000;
-
-stepSize = .001;        % step size for the secant line approximation
+stepSize = .00001;        % step size for the secant line approximation
 delSigma = 10^(-7);     % delta sigma used for finite difference of F
 delv0 = 10^(-7);        % delta v0 used for finite difference of F
-tolerance = 10^(-14);    % tolerance for Newton's method
-
-options = odeset('AbsTol',10^-8,'RelTol',10^-8);                                % ODE 45 options
+options = odeset('AbsTol',10^-8,'RelTol',10^-8);    % ODE 45 options
 options2 = optimoptions('lsqnonlin');
-foptions = optimoptions(@fsolve, 'TolFun', tolerance, 'display', 'off');      	%fsolve options
 
 %% load diffusion map data
 load('../data/diffMap1D.mat', 'alignData', 'evals', 'evecs', 'eps');
 allData = alignData;
 [evecs,ia,~] = unique(evecs);
 alignedCars = allData(:, ia);
-
-%{
-% calculate how unique each eigen direction is
-r = zeros(numEigvecs, 1);
-r(1) = 1;
-for j = 2:numEigvecs
-    disp(j);
-    r(j) = linearFit(evecs,j);
-end
-
-
-figure;
-plot(evecs, std(alignedCars(1:numCars,:))); 
-%}
-
 
 % load the reference states
 load('../data/microBif.mat', 'bif', 'vel');
@@ -44,23 +27,21 @@ v0_base2 = vel(start + change);
 v0_base1 = vel(start);
 ref_2 = bif(1:numCars,start + change);
 ref_1 = bif(1:numCars,start);
-% initialize the first reference state
 ref_2 = alignMax(ref_2, alignTo);
-% initialize the second reference state
 ref_1 = alignMax(ref_1, alignTo);
 
-
-sigma_1 = diffMapRestrict(ref_1,evals,evecs,alignedCars,eps)      %initial sigma values for secant line approximation
-sigma_2 = diffMapRestrict(ref_2,evals,evecs,alignedCars,eps)
+%initial psi values for secant line approximation
+psi_1 = diffMapRestrict(ref_1,evals,evecs,alignedCars,eps);      
+psi_2 = diffMapRestrict(ref_2,evals,evecs,alignedCars,eps);
 
 % draw the reference bifurcation diagrams
 load('../data/microBif.mat', 'bif', 'vel');
 oldBif = bif;
 figure; hold on;
 scatter(vel(start:end), std(oldBif(1:numCars, start:end)), 200, 'r.');
-sig = interp1(evecs,std(alignedCars(1:numCars,:)),sigma_1);        % interpolate to sigma
+sig = interp1(evecs,std(alignedCars(1:numCars,:)),psi_1);        % interpolate to sigma
 scatter(v0_base1, sig, 400,'k.'); drawnow;
-sig = interp1(evecs,std(alignedCars(1:numCars,:)),sigma_2);        % interpolate to sigma
+sig = interp1(evecs,std(alignedCars(1:numCars,:)),psi_2);        % interpolate to sigma
 scatter(v0_base2, sig, 400,'k.'); drawnow;
 
 %% initialize secant continuation
@@ -70,34 +51,22 @@ bif = zeros(2,steps);                       % array to hold the bifurcation valu
 %% pseudo arc length continuation
 for iEq=1:steps
     fprintf('Starting iteration %d of %d \n', iEq, steps);
-    w = [sigma_2 - sigma_1 ; v0_base2 - v0_base1];          % slope of the secant line
-    newGuess = [sigma_2; v0_base2] + stepSize *(w/norm(w)); % first guess on the secant line
+    w = [psi_2 - psi_1 ; v0_base2 - v0_base1];          % slope of the secant line
+    newGuess = [psi_2; v0_base2] + stepSize *(w/norm(w)); % first guess on the secant line
 
-    %% Newton's method using fsolve
-    %u = fsolve(@(u)FW(u,alignedCars,w,newGuess,evecs,evals,eps), newGuess,foptions);
+    %% Newton's method using lsqnonlin
     u = lsqnonlin(@(u)FW(u,alignedCars,w, newGuess, evecs,evals,eps), newGuess,[min(evecs) 0.9],[max(evecs) 1.2],options2);
-    fprintf('\t Velocity is: %f \n', u(2));
     sig = interp1(evecs,std(alignedCars(1:numCars,:)),u(1));        % interpolate to sigma
-    fprintf('\t rho is: %f \n', u(1));
-
-    fprintf('\t Sigma is: %f \n', sig);
-
     scatter(u(2), sig, 'b*'); drawnow;                          % plot the bifurcation diagram as it grows
     
     %% reset the values for the arc length continuation
-    sigma_1 = sigma_2;
+    psi_1 = psi_2;
     v0_base1 = v0_base2;
     v0_base2 = u(2);
-    sigma_2 = u(1);                                             % find the new reference state
-    bif(:,iEq) = [sigma_2 ; v0_base2];                          % save the new solution
+    psi_2 = u(1);                                             % find the new reference state
+    bif(:,iEq) = [psi_2 ; v0_base2];                          % save the new solution
+    save('../data/newtonContinuation1D.mat', 'bif');
 end
-hold off;
-
-% plot sigma vs eigenvector 1
-figure;
-scatter(std(alignedCars(1:numCars, :)), evecs(:,1),'b.');
-xlabel('\sigma');
-ylabel('Steve');
 
 %% plot the bifurcation diagram
 figure;
@@ -105,9 +74,8 @@ scatter(bif(2,:),bif(1,:),'*');
 xlabel('v0');
 ylabel('\Phi_1');
 
-% interpolate back to the standard deviation values
+% interpolate back to the standard deviation values and plot
 sig = interp1(evecs,std(alignedCars(1:numCars,:)),bif(1,:));
-% plot the bifurcation diagram using standard deviation coordinates
 figure;
 scatter(bif(2,:),sig);
 title('Interpolated sigmas');

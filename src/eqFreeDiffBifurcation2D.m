@@ -15,29 +15,7 @@ load('../data/diffMap2D.mat', 'hways', 'eps', 'evecs', 'evals');
 allData=hways;
 addKernelData(allData, eps); % save kernel data to avoid computing every time
 
-[~, max1] = max(allData,[],1);  % locate the max headway for each data point
-% plot eigenvector 1 vs eigenvector 2, colored by max headway location
-figure(1);
-scatter(evecs(:,1), evecs(:,2), 100, max1,'.'); hold on;
-color = colorbar;
-xlabel(color, 'Wave Position', 'fontsize', 14)
-colormap(jet);
-xlabel('\psi_1', 'FontSize',14);
-ylabel('\psi_2', 'FontSize',14);
-title('\psi_1 vs. \psi_2 Colored by Locations of the Max Headways','FontSize',14);
-drawnow;
-% plot eigenvector 1 vs eigenvector 2, colored by standard deviation
-figure;
-scatter(evecs(:,1), evecs(:,2), 100,  std(allData),'.');
-colorbar;
-color = colorbar;
-xlabel(color, '\sigma', 'fontsize', 14)
-colormap(jet);
-xlabel('\psi_1', 'FontSize',14);
-ylabel('\psi_2', 'FontSize',14);
-title('\psi_1 vs. \psi_2 Colored by Standard Deviation of the Headways','FontSize',14);
-
-% load the reference states
+% load the reference states and previous bifurcation diagram 
 load('../data/microBif.mat', 'bif', 'vel', 'n');
 start = 110;                                % location on the curve to start at
 change = 1;
@@ -102,7 +80,7 @@ for iEq=1:steps
     sigma(iEq) = sig; % save the standard deviation of the headways to compare
     
     fprintf('Exit flag: %d \n', exitFlag);
-    save('../data/newtonContinuation.mat', 'bif', 'guesses', 'rayAngle', 'sigma');
+    save('../data/newtonContinuation2D.mat', 'bif', 'guesses', 'rayAngle', 'sigma');
     
     subplot(1,2,1); hold on;
     scatter(u(3), u(1), 400, 'b.'); drawnow;
@@ -154,7 +132,7 @@ end
 % sigma      - the macro-state of the headways after evolving for t
     function [coord, sigma, evo] = ler(newval,orig,t,v0,eigvecs,eigvals,lereps)
         options = odeset('AbsTol',10^-8,'RelTol',10^-8); % ODE 45 options
-        lifted = diffMapLift(newval, eigvecs, eigvals, lereps,v0, orig);
+        lifted = diffMapLift(newval, eigvecs, eigvals, lereps,v0, orig, h);
         [~,evo] = ode45(@microsystem,[0 t],lifted, options,[v0 len h]);
         evo = evo(end,:)';
         evoCars = getHeadways(evo(1:numCars),len);
