@@ -1,48 +1,43 @@
+%% function microBifurcation creates the bifurcation diagram using secant continuation in the microsystem only
+function microBifurcation()
 h = 2.4;
+tau = 1/1.7;
 len = 60;
 numCars = 30;
-
-v0_base1 = 1.14;
-v0_base2 = 1.135;
-
-%{
 options = odeset('AbsTol',10^-8,'RelTol',10^-8); % ODE 45 options
+foptions = optimoptions(@fsolve, 'TolFun',1e-15,'TolX',1e-15, 'Display', 'off', ...
+    'SpecifyObjectiveGradient', true, 'CheckGradient', true, ...
+    'FiniteDifferenceType', 'central'); % fsolve options
+
 %% initialize car positions and velocities
+v0_base1 = 1.14; 
+v0_base2 = 1.135;
 cars_1 = zeros(2*numCars, 1);
 cars_2 = zeros(2*numCars, 1);
 mu = .1;
 finalTime  = 50000;
 for i = 1:numCars
     cars_1(i) = (i-1) * len/numCars + mu*sin(2*pi*i/numCars);
-    cars_1(i+numCars) = optimalVelocity(len/numCars, v0_base1);
+    cars_1(i+numCars) = optimalVelocity(h, len/numCars, v0_base1);
     
     cars_2(i) = (i-1) * len/numCars + mu*sin(2*pi*i/numCars);
-    cars_2(i+numCars) = optimalVelocity(len/numCars, v0_base2);
+    cars_2(i+numCars) = optimalVelocity(h, len/numCars, v0_base2);
 end
-%% save new reference state (if you want)
-tic;
+
+%% evolve reference states until they reach equilibrium
 [~,allTime_1] = ode45(@(t,y)microsystem(t,y, [v0_base1 len h]),[0 finalTime],cars_1, options);
 ref_1 = allTime_1(end,:)';
 [~,allTime_2] = ode45(@(t,y)microsystem(t,y, [v0_base2 len h]),[0 finalTime],cars_2, options);
 ref_2 = allTime_2(end,:)';
-toc;
-save('refStats.mat','ref_1','ref_2');
-%}
+save('../data/refStats.mat','ref_1','ref_2');
 
-%% or you can load them instead
-load('refStats.mat','ref_1','ref_2');
-
-hways1 = getHeadways(ref_1(1:numCars));
-hways2 = getHeadways(ref_2(1:numCars));
+hways1 = getHeadways(ref_1(1:numCars), len);
+hways2 = getHeadways(ref_2(1:numCars), len);
 
 %% Bifurcation on micro
 steps = 200;
 stepSize = 0.025;
 cguess = -0.8581;
-
-foptions = optimoptions(@fsolve, 'TolFun',1e-15,'TolX',1e-15, 'Display', 'off', ...
-    'SpecifyObjectiveGradient', true, 'CheckGradient', true, ...
-    'FiniteDifferenceType', 'central');
 
 [~, max1] = max(hways1);
 [~, max2] = max(hways2);
@@ -61,7 +56,7 @@ sys2 = [hways2; cguess; 0; v0_base2];
 
 bif  = zeros(numCars + 3, steps);
 
-figure; hold on;
+figure; hold on; % plot the bifurcation diagram as it's made
 scatter(v0_base1, std(hways1), 100,'r*');
 scatter(v0_base2, std(hways2), 100, 'r*');
 
@@ -70,7 +65,7 @@ for iMic = 1:steps
     change =  stepSize*(w/norm(w));
     newGuess = sys2 + change;       % initial guess for newton solver
     lastGuess = sys2;               % reference state for phase condition
-    [u , ~] = fsolve(@(sys2)FW(sys2, lastGuess, numCars, len, 1/1.7, w, newGuess),...
+    [u , ~] = fsolve(@(sys2)FW(sys2, lastGuess, numCars, len, tau, w, newGuess),...
         newGuess, foptions);
     r = u(1:discreteScaling: end  - 3);
     bif(:,iMic) = [r; u(end - 2: end)];
@@ -81,11 +76,6 @@ for iMic = 1:steps
     
     scatter(bif(end,iMic), std(r), 400, 'b.'); drawnow;
 end
-
-%save('microBif.mat', 'bif');
-%% plot results
-figure;
-scatter(bif(end,:), std(bif(1:numCars,:)),50,'b.');
 
 %% function to minimize with fsolve
 % var       - state to vary in order to minimize fw
@@ -104,3 +94,5 @@ scatter(bif(end,:), std(bif(1:numCars,:)),50,'b.');
         J2 = W';
         J = [J1 ; J2]; 
     end
+
+end
