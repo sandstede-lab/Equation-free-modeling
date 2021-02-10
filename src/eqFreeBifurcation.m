@@ -2,15 +2,10 @@ function eqFreeBifurcation()
     h = 2.4;                % optimal velocity parameter
     len = 60;               % length of the ring road
     numCars = 30;           % number of cars
-
     tskip = 100;            % times for evolving
     delta = 1000;           
     stepSize = .0025;        % step size for the secant line approximation
-    delSigma = 0.00001;     % delta sigma used for finite difference of F
-    delv0 = 0.00001;        % delta v0 used for finite difference of F
     tolerance = 10^(-7);    % tolerance for Newton's method
-    
-    options = odeset('AbsTol',10^-8,'RelTol',10^-8); % ODE 45 options
 
     % load the reference states if they have already been calculated
     load('../data/microBif.mat', 'bif', 'vel');
@@ -45,7 +40,7 @@ function eqFreeBifurcation()
         u = newGuess;
         first = true;                       % mimic a do-while loop                                
         k=1;                            	% Newton's method counter
-        %% Newton and that other guy's method
+        %% Newton's method
         while(first ||(norm(invD*[f;neww])>tolerance && k < 20))
             first = false;
             fprintf('\tNewton iteration: %d \n', k);
@@ -57,9 +52,6 @@ function eqFreeBifurcation()
             k = k + 1;
         end  
         
-        %% alternate Newton's method using fsolve
-        % u = fsolve(@(u)FW(u,ref_2,w,newGuess), newGuess); 
-
         bif(:,iEq) = u;                                             % save the new solution
 
         %% reset the values for the arc length continuation
@@ -77,22 +69,6 @@ function eqFreeBifurcation()
 
     
     %% functions
-    
-    %% function to zero for fsolve
-    % u         - the current value of (sigma, v0) that we're trying to find
-    %               with Newton's method
-    % ref       - the most recent reference state
-    % W         - the slope of the secant line for arc length continuation
-    % newGuess  - the first guess on the secant line for arc length
-    %               continuation
-    %
-    % RETURNS:
-    % fw    - the functions F and w evaluated at these parameters
-    function fw = FW(u,ref,W,newGuess)
-        fw = zeros(2,1);
-        fw(1) = F(ref,u(1),u(2));
-        fw(2) = W(1)*(u(1)-newGuess(1)) + W(2)*(u(2) - newGuess(2));
-    end
 
     %% lift, evolve, restrict
     % sigma - the current value of the std, used to seed the lifting
@@ -106,6 +82,7 @@ function eqFreeBifurcation()
     % new_state - the final state of the evolution, which can be used as a
     %               future reference state
     function [sigma,new_state, sigma2, new_state2] = ler(sigma,ref,t,p,v0, tReference)
+        options = odeset('AbsTol',10^-8,'RelTol',10^-8); % ODE 45 options
         lifted = lift(sigma, p, getHeadways(ref(1:numCars), len),v0); %lift
          [~,evo] = ode45(@microsystem,[0 t],lifted, options,[v0, len, h]); % evolve
          if (nargin > 5) % evolve for tskip
@@ -143,6 +120,8 @@ function eqFreeBifurcation()
     % | F_sigma    F_v0  |
     % | w_sigma    w_vo  |
     function J = jacobian(ref, sigma, v0,w)
+        delSigma = 0.00001;     % delta sigma used for finite difference of F
+        delv0 = 0.00001;        % delta v0 used for finite difference of F
         J = zeros(2);
         unchanged = F(ref, sigma, v0);
         J(1,1) = (F(ref, sigma + delSigma, v0) - unchanged)/delSigma;
