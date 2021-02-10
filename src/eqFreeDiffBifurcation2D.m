@@ -1,3 +1,6 @@
+ function eqFreeDiffBifurcation2D()
+clear workspace;
+
 h = 2.4;                % optimal velocity parameter
 len = 60;               % length of the ring road
 numCars = 30;           % number of cars
@@ -8,7 +11,7 @@ options2.FunctionTolerance = 1e-10;
 options2.Display = 'iter';
 
 %% load diffusion map data
-load('30DiffMap.mat', 'hways', 'eps', 'evecs', 'evals');
+load('../data/diffMap2D.mat', 'hways', 'eps', 'evecs', 'evals');
 allData=hways;
 addKernelData(allData, eps); % save kernel data to avoid computing every time
 
@@ -37,7 +40,7 @@ title('\psi_1 vs. \psi_2 Colored by Standard Deviation of the Headways','FontSiz
 %}
 
 % load the reference states
-load('microBif.mat', 'bif', 'vel',  'period', 'n');
+load('../data/microBif.mat', 'bif', 'vel',  'period', 'n');
 start = 110;                                % location on the curve to start at
 change = 1;
 v0_base2 = vel(start + change);
@@ -46,8 +49,8 @@ ref_2 = bif(1:numCars,start + change);
 ref_1 = bif(1:numCars,start);
 T2 = -numCars/bif(numCars + 1, start + change);
 T1 = -numCars/bif(numCars + 1, start);
-embed_2 = diffMapRestrictAlt(ref_2,evals,evecs,allData,eps,1);
-embed_1 = diffMapRestrictAlt(ref_1,evals,evecs,allData,eps,1);
+embed_2 = diffMapRestrict(ref_2,evals,evecs,allData,eps);
+embed_1 = diffMapRestrict(ref_1,evals,evecs,allData,eps);
 p2 = norm(embed_2);
 p1 = norm(embed_1);
 coord2 = [p2, T2, v0_base2];
@@ -152,10 +155,12 @@ end
 % sigma      - the macro-state of the headways after evolving for t
     function [coord, sigma, evo] = ler(newval,orig,t,v0,eigvecs,eigvals,lereps)
         options = odeset('AbsTol',10^-8,'RelTol',10^-8); % ODE 45 options
-        lifted = newLift(newval, eigvecs, eigvals, lereps,v0, orig);
+        lifted = diffMapLift(newval, eigvecs, eigvals, lereps,v0, orig);
         [~,evo] = ode45(@microsystem,[0 t],lifted, options,[v0 len h]);
         evo = evo(end,:)';
         evoCars = getHeadways(evo(1:numCars),len);
         sigma = std(evoCars);
-        coord = diffMapRestrictAlt(evoCars,eigvals,eigvecs, orig, lereps, 1);
+        coord = diffMapRestrict(evoCars,eigvals,eigvecs, orig, lereps);
     end
+
+end
