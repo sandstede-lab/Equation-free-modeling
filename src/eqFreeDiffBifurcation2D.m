@@ -15,7 +15,6 @@ load('../data/diffMap2D.mat', 'hways', 'eps', 'evecs', 'evals');
 allData=hways;
 addKernelData(allData, eps); % save kernel data to avoid computing every time
 
-%{
 [~, max1] = max(allData,[],1);  % locate the max headway for each data point
 % plot eigenvector 1 vs eigenvector 2, colored by max headway location
 figure(1);
@@ -37,10 +36,9 @@ colormap(jet);
 xlabel('\psi_1', 'FontSize',14);
 ylabel('\psi_2', 'FontSize',14);
 title('\psi_1 vs. \psi_2 Colored by Standard Deviation of the Headways','FontSize',14);
-%}
 
 % load the reference states
-load('../data/microBif.mat', 'bif', 'vel',  'period', 'n');
+load('../data/microBif.mat', 'bif', 'vel', 'n');
 start = 110;                                % location on the curve to start at
 change = 1;
 v0_base2 = vel(start + change);
@@ -103,7 +101,7 @@ for iEq=1:steps
     sigma(iEq) = sig; % save the standard deviation of the headways to compare
     
     fprintf('Exit flag: %d \n', exitFlag);
-    save('newtonContinuation7.mat', 'bif', 'guesses', 'rayAngle', 'sigma');
+    save('../data/newtonContinuation.mat', 'bif', 'guesses', 'rayAngle', 'sigma');
     
     subplot(1,2,1); hold on;
     scatter(u(3), u(1), 400, 'b.'); drawnow;
