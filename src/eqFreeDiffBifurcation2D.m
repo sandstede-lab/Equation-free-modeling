@@ -13,7 +13,6 @@ options2.Display = 'iter';
 %% load diffusion map data
 load('../data/diffMap2D.mat', 'hways', 'eps', 'evecs', 'evals');
 allData=hways;
-addKernelData(allData, eps); % save kernel data to avoid computing every time
 
 % load the reference states and previous bifurcation diagram 
 load('../data/microBif.mat', 'bif', 'vel', 'n');
