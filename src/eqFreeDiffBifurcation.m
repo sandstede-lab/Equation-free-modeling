@@ -1,27 +1,25 @@
-h = 1.2;                % optimal velocity parameter
-len = 60;               % length of the ring road
-numCars = 60;           % number of cars
-alignTo = 20;
-tskip = 300;            % times for evolving
-delta = 2000;
+function eqFreeDiffBifurcation()
+h = 2.4;                % optimal velocity parameter
+len = 60;              % length of the ring road
+numCars = 30;           % number of cars
+alignTo = 10;
+tskip = 100;            % times for evolving
+delta = 1000;
 
-stepSize = .0001;        % step size for the secant line approximation
+stepSize = .001;        % step size for the secant line approximation
 delSigma = 10^(-7);     % delta sigma used for finite difference of F
 delv0 = 10^(-7);        % delta v0 used for finite difference of F
 tolerance = 10^(-14);    % tolerance for Newton's method
 
 options = odeset('AbsTol',10^-8,'RelTol',10^-8);                                % ODE 45 options
+options2 = optimoptions('lsqnonlin');
 foptions = optimoptions(@fsolve, 'TolFun', tolerance, 'display', 'off');      	%fsolve options
 
 %% load diffusion map data
-load('moreData.mat', 'betterData');
-allData = betterData;                                   % aligned headway data
-
-numEigvecs = 1;                                         % number of eigenvectors to return
-[evecs, evals, eps] = runDiffMap(allData,numEigvecs);   % run the diffusion map
-
+load('../data/diffMap1D.mat', 'alignData', 'evals', 'evecs', 'eps');
+allData = alignData;
 [evecs,ia,~] = unique(evecs);
-allData = allData(:, ia);
+alignedCars = allData(:, ia);
 
 %{
 % calculate how unique each eigen direction is
@@ -31,39 +29,59 @@ for j = 2:numEigvecs
     disp(j);
     r(j) = linearFit(evecs,j);
 end
+
+
+figure;
+plot(evecs, std(alignedCars(1:numCars,:))); 
 %}
+
+
+% load the reference states
+load('../data/microBif.mat', 'bif', 'vel');
+start = 110;                                % location on the curve to start at
+change = 1;
+v0_base2 = vel(start + change);
+v0_base1 = vel(start);
+ref_2 = bif(1:numCars,start + change);
+ref_1 = bif(1:numCars,start);
+% initialize the first reference state
+ref_2 = alignMax(ref_2, alignTo);
+% initialize the second reference state
+ref_1 = alignMax(ref_1, alignTo);
+
+
+sigma_1 = diffMapRestrict(ref_1,evals,evecs,alignedCars,eps)      %initial sigma values for secant line approximation
+sigma_2 = diffMapRestrict(ref_2,evals,evecs,alignedCars,eps)
+
+% draw the reference bifurcation diagrams
+load('../data/microBif.mat', 'bif', 'vel');
+oldBif = bif;
+figure; hold on;
+scatter(vel(start:end), std(oldBif(1:numCars, start:end)), 200, 'r.');
+sig = interp1(evecs,std(alignedCars(1:numCars,:)),sigma_1);        % interpolate to sigma
+scatter(v0_base1, sig, 400,'k.'); drawnow;
+sig = interp1(evecs,std(alignedCars(1:numCars,:)),sigma_2);        % interpolate to sigma
+scatter(v0_base2, sig, 400,'k.'); drawnow;
 
 %% initialize secant continuation
 steps = 400;                                % number of steps to take around the curve
 bif = zeros(2,steps);                       % array to hold the bifurcation values
 
-% initialize the first reference state
-load('start0.884800.mat', 'trafficData', 'vel');
-ref_2 = getHeadways(trafficData(1:numCars), len);
-ref_2 = alignMax(ref_2, alignTo, false);
-v0_base2 = vel;
-
-% initialize the second reference state
-load('start0.885000.mat', 'trafficData', 'vel');
-ref_1 = getHeadways(trafficData(1:numCars), len);
-ref_1 = alignMax(ref_1, alignTo, false);
-v0_base1 = vel;
-
-sigma_1 = diffMapRestrict(ref_1,evals,evecs,allData,eps);      %initial sigma values for secant line approximation
-sigma_2 = diffMapRestrict(ref_2,evals,evecs,allData,eps);
-
 %% pseudo arc length continuation
-figure;
-hold on;
 for iEq=1:steps
     fprintf('Starting iteration %d of %d \n', iEq, steps);
     w = [sigma_2 - sigma_1 ; v0_base2 - v0_base1];          % slope of the secant line
     newGuess = [sigma_2; v0_base2] + stepSize *(w/norm(w)); % first guess on the secant line
 
     %% Newton's method using fsolve
-    u = fsolve(@(u)FW(u,allData,w,newGuess,evecs,evals,eps), newGuess,foptions);
+    %u = fsolve(@(u)FW(u,alignedCars,w,newGuess,evecs,evals,eps), newGuess,foptions);
+    u = lsqnonlin(@(u)FW(u,alignedCars,w, newGuess, evecs,evals,eps), newGuess,[min(evecs) 0.9],[max(evecs) 1.2],options2);
     fprintf('\t Velocity is: %f \n', u(2));
-    sig = interp1(evecs,std(allData(1:numCars,:)),u(1));        % interpolate to sigma
+    sig = interp1(evecs,std(alignedCars(1:numCars,:)),u(1));        % interpolate to sigma
+    fprintf('\t rho is: %f \n', u(1));
+
+    fprintf('\t Sigma is: %f \n', sig);
+
     scatter(u(2), sig, 'b*'); drawnow;                          % plot the bifurcation diagram as it grows
     
     %% reset the values for the arc length continuation
@@ -77,7 +95,7 @@ hold off;
 
 % plot sigma vs eigenvector 1
 figure;
-scatter(std(allData(1:numCars, :)), evecs(:,1),'b.');
+scatter(std(alignedCars(1:numCars, :)), evecs(:,1),'b.');
 xlabel('\sigma');
 ylabel('Steve');
 
@@ -88,7 +106,7 @@ xlabel('v0');
 ylabel('\Phi_1');
 
 % interpolate back to the standard deviation values
-sig = interp1(evecs,std(allData(1:numCars,:)),bif(1,:));
+sig = interp1(evecs,std(alignedCars(1:numCars,:)),bif(1,:));
 % plot the bifurcation diagram using standard deviation coordinates
 figure;
 scatter(bif(2,:),sig);
@@ -129,18 +147,18 @@ ylabel('\sigma');
 % new_state - the final state of the evolution, which can be used as a
 %               future reference state
     function [sigma,new_state, sigma2, new_state2] = ler(newval,orig,t,v0,eigvecs,eigvals,lereps,tReference)
-        lifted = smartLift(newval, eigvecs, eigvals, lereps,v0, orig, alignTo, h, len);
+        lifted = diffMapLift(newval, eigvecs, eigvals, lereps,v0, orig, h);
         [~,evo] = ode45(@microsystem,[0 t],lifted, options,[v0 len h]);
         if (nargin > 7)
             [~,evo2] = ode45(@microsystem,[0 tReference],evo(end,1:2*numCars)',options,[v0 len h]);
             evo2Cars = evo2(end, :)';
             evo2Cars = getHeadways(evo2Cars(1:numCars), len); 
-            evo2Cars = alignMax(evo2Cars, alignTo, false);
+            evo2Cars = alignMax(evo2Cars, alignTo);
             sigma2 = diffMapRestrict(evo2Cars,eigvals,eigvecs, orig, lereps);
         end
         evoCars = evo(end, :)';
         evoCars = getHeadways(evoCars(1:numCars), len);
-        evoCars = alignMax(evoCars, alignTo, false);
+        evoCars = alignMax(evoCars, alignTo);
         sigma = diffMapRestrict(evoCars, eigvals, eigvecs, orig, lereps);
         if(nargout >= 2)
             new_state = evo(end,1:2*numCars)';
@@ -177,3 +195,5 @@ ylabel('\sigma');
         J(1,2) = (F(ref, sigma,v0 + delv0,eigvecs,eigvals,lereps) - unchanged)/delv0;
         J(2,:) = w';
     end
+
+end

@@ -45,6 +45,7 @@ v0_base2 = vel(start + change);
 v0_base1 = vel(start);
 ref_2 = bif(1:numCars,start + change);
 ref_1 = bif(1:numCars,start);
+
 T2 = -numCars/bif(numCars + 1, start + change);
 T1 = -numCars/bif(numCars + 1, start);
 embed_2 = diffMapRestrict(ref_2,evals,evecs,allData,eps);

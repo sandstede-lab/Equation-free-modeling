@@ -8,13 +8,11 @@
 %
 % returns a 120 x 1 vector of car positions and velocities that restricts
 % to close to newVal
-function [lifted, idxMin] = diffMapLift(newVal, evec, eval, eps,v0, oldData)
+function [lifted, idxMin] = diffMapLift(newVal, evec, eval, eps,v0, oldData, h)
 lsqOptions = optimset('Display','Off', 'TolX', 1e-12);
 lsqOptions.FunctionTolerance = 1e-8;
 lsqOptions.StepTolerance = 1e-9;
 lsqOptions.OptimalityTolerance = 1e-8;
-%% constants
-h = 2.4;                % optimal velocity parameter
 
 %% find closest datapoints
 validPoints = 10;

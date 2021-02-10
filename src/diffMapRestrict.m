@@ -11,7 +11,7 @@ function pnew = diffMapRestrict(newData,evals,evecs,origData,eps)
 
 dist = pdist2(newData',origData')';     % calculate the pairwise distances between newData and origData
 w = basicKernel(dist);
-k = (1/sum(w))*w;
+k = (1./sum(w)).*w;
 pnew = (evecs' * k)./diag(evals);
 
     function af = basicKernel(s)
