@@ -8,10 +8,11 @@ function eqFreeBifurcation()
     tolerance = 10^(-7);    % tolerance for Newton's method
 
     % load the reference states if they have already been calculated
-    load('../data/microBif.mat', 'bif', 'vel');
+    load('../data/microBif.mat', 'bif');
     oldBif = bif;
+    vel = bif(end, :);
     
-    start = 105;
+    start = 1;
     ref_2 = oldBif(1:numCars, start+1);   % initial profiles
     ref_1 = oldBif(1:numCars, start);
     v0_base1 = vel( start);

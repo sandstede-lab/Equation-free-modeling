@@ -7,7 +7,7 @@ numCars = 30;           % number of cars
 alignTo = 10;
 tskip = 100;            % times for evolving
 delta = 1000;
-stepSize = .00001;        % step size for the secant line approximation
+stepSize = 0.001;%.00001;        % step size for the secant line approximation
 delSigma = 10^(-7);     % delta sigma used for finite difference of F
 delv0 = 10^(-7);        % delta v0 used for finite difference of F
 options = odeset('AbsTol',10^-8,'RelTol',10^-8);    % ODE 45 options
@@ -20,8 +20,9 @@ allData = alignData;
 alignedCars = allData(:, ia);
 
 % load the reference states
-load('../data/microBif.mat', 'bif', 'vel');
-start = 110;                                % location on the curve to start at
+load('../data/microBif.mat', 'bif');
+vel = bif(end, :);
+start = 50;                                % location on the curve to start at
 change = 1;
 v0_base2 = vel(start + change);
 v0_base1 = vel(start);

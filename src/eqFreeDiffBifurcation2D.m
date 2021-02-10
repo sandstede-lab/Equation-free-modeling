@@ -15,8 +15,11 @@ load('../data/diffMap2D.mat', 'hways', 'eps', 'evecs', 'evals');
 allData=hways;
 
 % load the reference states and previous bifurcation diagram 
-load('../data/microBif.mat', 'bif', 'vel', 'n');
-start = 110;                                % location on the curve to start at
+load('../data/microBif.mat', 'bif');
+vel = bif(end, :);
+n = diffMapRestrict(bif(1:numCars,:), evals, evecs, allData, eps);
+n = sqrt(n(1,:).^2 + n(2,:).^2);
+start = 50;                                % location on the curve to start at
 change = 1;
 v0_base2 = vel(start + change);
 v0_base1 = vel(start);
@@ -36,14 +39,15 @@ rayAngle = atan2(embed_2(2), embed_2(1));
 % draw the bifurcation diagrams
 figure;
 subplot(1,2,1);hold on;
-scatter(vel(100:end), n(100:end), 50, 'r.');
+scatter(vel(start:end), n(start:end), 50, 'r.');
 xlabel('v_0');
 ylabel('\rho');
 scatter(v0_base1, p1, 400,'k.'); drawnow;
 scatter(v0_base2, p2, 400,'k.'); drawnow;
 
+
 subplot(1,2,2); hold on;
-scatter(n(100:end), -numCars./bif(numCars + 1, 100:end), 50, 'r.');
+scatter(n(start:end), -numCars./bif(numCars + 1, start:end), 50, 'r.');
 scatter(p1,T1, 400, 'k.'); drawnow;
 scatter(p2, T2, 400, 'k.'); drawnow;
 xlabel('\rho');
