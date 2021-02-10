@@ -29,7 +29,7 @@ end
 ref_1 = allTime_1(end,:)';
 [~,allTime_2] = ode45(@(t,y)microsystem(t,y, [v0_base2 len h]),[0 finalTime],cars_2, options);
 ref_2 = allTime_2(end,:)';
-save('../data/refStats.mat','ref_1','ref_2');
+save('../data/refStates.mat','ref_1','ref_2', 'v0_base1', 'v0_base2');
 
 hways1 = getHeadways(ref_1(1:numCars), len);
 hways2 = getHeadways(ref_2(1:numCars), len);
@@ -76,6 +76,8 @@ for iMic = 1:steps
     
     scatter(bif(end,iMic), std(r), 400, 'b.'); drawnow;
 end
+
+save('../data/microBif.mat', bif)
 
 %% function to minimize with fsolve
 % var       - state to vary in order to minimize fw
