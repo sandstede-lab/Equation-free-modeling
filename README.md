@@ -20,3 +20,10 @@ Data files
 
 2. refStates.mat - Matlab datafile containing the two starting references states 'ref1' and 'ref2' as well as their velocities 'v0_base1' and 'v0_base2'
 
+3. 30data.mat - Matlab datafile containing the traffic profiles used to create the diffusion map
+
+4. diffMap1D.mat - Matlab datafile containing the aligned data 'alignData' used to create the 1D diffusion map as well as the diffusion map variables 'evals', 'evecs', and 'eps
+
+5. diffMap2D.mat - Matlab datafile containing the traffic data 'hways' used to create the 2D diffusion map as well as the diffusion map variables 'eps', 'evecs', 'evals'
+
+
