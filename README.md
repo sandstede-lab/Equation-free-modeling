@@ -1,13 +1,17 @@
 # eq-free
 Enabling equation-free modeling via diffusion maps by Tracy Chin, Jacob Ruth, Clayton Sanford, Rebecca Santorella, Paul Carter, and Bjorn Sandstede
 
-microBifurcation.m computes the bifrucation diagram directly.
+Generate traffic data: genTrafficData.m 
 
-eqFreeBifurcation.m computes the bifurcation diagram using the macro variables as chosen by Marschler et. al. 
+Compute a diffusion map:
 
-eqFreeDiffBifurcation.m computes the bifurcation diagram with a 1D diffusion map applied to phase-shifted traffic profiles.
+Computing the bifurcation diagram
+1. Using the microsystem: microBifurcation.m
+    Files needed: microBifurcation.m, fourdif.m, microFJ.m
+    
+2. Using the standard deviation as a marco variable: eqFreeBifurcation.m 
 
-eqFreeDiffBifurcation2D.m computes the bifurcatin diagram with a 2D diffusion map applied to traffic profiles.
+3. Using a 1D diffusion map applied to phase-shifted traffic profiles: eqFreeDiffBifurcation.m 
 
-genTrafficData.m generates a dataset of traffic profiles by simulating the micro system.
+4. Using a 2D diffusion map applied to traffic profiles: eqFreeDiffBifurcation2D.m 
 
