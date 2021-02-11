@@ -6,7 +6,6 @@ classdef DiffusionMap
         evals
         epsilon
         lsqOptions
-        
     end
     
     methods
@@ -47,11 +46,20 @@ classdef DiffusionMap
         % restriction operator with the diffusion map
         % newData is a micro variable
         % pnew is the restriction of newData
-        function pnew = restrict(obj, newData)
-            dist = pdist2(newData',obj.data')';
+        function pnew = restrict(obj, newData, i)
+            allData = obj.data;
+            vecs = obj.evecs;
+            
+            if nargin > 2
+                % remove this point from the data set
+                allData(:, i) = [];
+                vecs(i,:) = [];
+            end
+            
+            dist = pdist2(newData',allData')';
             w = exp(-dist.^2/obj.epsilon^2);
             k = (1./sum(w)).*w;
-            pnew = (obj.evecs' * k)./diag(obj.evals);
+            pnew = (vecs' * k)./diag(obj.evals);
         end
         
         % lifting operator with the diffusion map
@@ -64,7 +72,7 @@ classdef DiffusionMap
             newDist = pdist2(newVal',obj.evecs);
             [~, index] = sort(newDist, 2, 'ascend');
             idxMin = index(1:validPoints);
-            closestPoints = obj.data(:, idxMin); 
+            closestPoints = obj.data(:, idxMin);
             
             % solve for best coefficients for linear combination
             liftedCoeffs = lsqnonlin(@(coeffs)liftingEquations(obj, coeffs, closestPoints, newVal, validPoints), ...
@@ -78,6 +86,56 @@ classdef DiffusionMap
             restrictGuess = restrict(obj, liftGuess);
             out = [restrictGuess - newVal  ; sum(coeffs) - 1; zeros(validPoints - 1, 1)];
         end
+        
+        %nystrom error comparison, calculated the following way:
+        %   'correct' coordinates are given by the evec coord
+        %   approximated coordinates are given by diff map restrict, when the value
+        %   is removed from the data set
+        %   better approximated coordinates are given by diff map restrict, when
+        %   the value is still included in the data set
+        function [percentError, restricted, restrictDiff] = testRestrict(obj, numRestrict)
+            if nargin < 2
+                numRestrict = length(obj.evecs);
+            end
+            
+            restricted = zeros(numRestrict, length(obj.evals));
+            restrictDiff = zeros(numRestrict, 1);
+            percentError = zeros(numRestrict,1);
+            
+            for i = 1:numRestrict
+                if mod(i, 500)==0
+                    disp(i);
+                end
+                
+                restricted(i, :) = restrict(obj,obj.data(:,i), i); % restrict this point
+                restrictDiff(i) = norm((obj.evecs(i, :) - restricted(i, :)));
+                percentError(i) = restrictDiff(i)/norm(obj.evecs(i, :));
+            end
+        end
+        
+        function[percentError, restricted, restrictDiff] = testLift(obj, numRestrict)
+            if nargin < 2
+                numRestrict = length(obj.evecs);
+            end
+            
+            restricted = zeros(numRestrict, length(obj.evals));
+            restrictDiff = zeros(numRestrict, 1);
+            percentError = zeros(numRestrict,1);
+            
+            for i=1:numRestrict
+                if mod(i, 500)==0
+                    disp(i);
+                end
+   
+                lifted = lift(obj, obj.evecs(i, :)');  % lift the profile
+               % restrictDiff(i) = norm( lifted - obj.data(:,i));
+               % percentError(i) = abs(lifte)-obj.evecs(i,:))/abs(obj.evecs(i,:));
+                restricted(i, :) = restrict(obj, lifted); % restrict the lifted profile
+                restrictDiff(i) = norm(restricted(i, :) - obj.evecs(i,:));    % compute the difference from the original embedding
+                percentError(i) = abs(restricted(i, :) -obj.evecs(i,:))/abs(obj.evecs(i,:));
+            end
+        end
+        
     end
     
 end
