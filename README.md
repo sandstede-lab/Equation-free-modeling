@@ -3,7 +3,19 @@ Enabling equation-free modeling via diffusion maps by Tracy Chin, Jacob Ruth, Cl
 
 Generate traffic data: genTrafficData.m 
 
-Compute a diffusion map:
+Compute a diffusion map
+1. For any data: diffMap.m
+
+2. For the traffic data: createDiffMaps.m
+
+Test the lifting and restriction operators
+1.
+
+2.
+
+3.
+
+4.
 
 Computing the bifurcation diagram
 1. Using the microsystem: microBifurcation.m
