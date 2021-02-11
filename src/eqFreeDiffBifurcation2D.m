@@ -11,13 +11,12 @@ options2.FunctionTolerance = 1e-10;
 options2.Display = 'iter';
 
 %% load diffusion map data
-load('../data/diffMap2D.mat', 'hways', 'eps', 'evecs', 'evals');
-allData=hways;
+load('../data/diffMap2D.mat', 'diffMap2D');
 
 % load the reference states and previous bifurcation diagram 
 load('../data/microBif.mat', 'bif');
 vel = bif(end, :);
-n = diffMapRestrict(bif(1:numCars,:), evals, evecs, allData, eps);
+n = diffMap2D.restrict(bif(1:numCars,:));
 n = sqrt(n(1,:).^2 + n(2,:).^2);
 start = 50;                                % location on the curve to start at
 change = 1;
@@ -28,8 +27,8 @@ ref_1 = bif(1:numCars,start);
 
 T2 = -numCars/bif(numCars + 1, start + change);
 T1 = -numCars/bif(numCars + 1, start);
-embed_2 = diffMapRestrict(ref_2,evals,evecs,allData,eps);
-embed_1 = diffMapRestrict(ref_1,evals,evecs,allData,eps);
+embed_2 = diffMap2D.restrict(ref_2);
+embed_1 = diffMap2D.restrict(ref_1);
 p2 = norm(embed_2);
 p1 = norm(embed_1);
 coord2 = [p2, T2, v0_base2];
@@ -71,7 +70,7 @@ for iEq=1:steps
     scaledNewGuess = newGuess ./ coord2;
 
     %% alternate Newton's method using lsqnonlin
-    [u, ~, ~, exitFlag] = lsqnonlin(@(u)periodicDistance(u,allData,evecs,evals,eps,coord2,rayAngle,scaledW,...
+    [u, ~, ~, exitFlag] = lsqnonlin(@(u)periodicDistance(u,diffMap2D,coord2,rayAngle,scaledW,...
         scaledNewGuess), newGuess,[],[],lsqOptions);
     
     bif(:,iEq) = u';                                            % save the new solution
@@ -107,9 +106,9 @@ end
 % distance  - the distance between the input point and the point determined by 
 %               lifting, evolving for T time, and restricting
 % onplane   - whether this is on the plane orthogonal to w at the starting guess
-    function out = periodicDistance(u,allData,evecs,evals,lereps, coord2, ray, scaledW, scaledNewGuess)
+    function out = periodicDistance(u,diffMap2D, coord2, ray, scaledW, scaledNewGuess)
         inputPoint = [u(1)*cos(ray) ; u(1)*sin(ray)];
-        [finalPoint, sig] = ler(inputPoint,allData,25*u(2),u(3),evecs,evals,lereps);
+        [finalPoint, sig] = ler(inputPoint, diffMap2D, 25*u(2),u(3));
         
         angle = atan2(finalPoint(2), finalPoint(1));
         r = norm(finalPoint);
@@ -133,14 +132,15 @@ end
 % lereps     - epsilon used in diffusionmap
 % RETURNS:
 % sigma      - the macro-state of the headways after evolving for t
-    function [coord, sigma, evo] = ler(newval,orig,t,v0,eigvecs,eigvals,lereps)
+    function [coord, sigma, evo] = ler(newval, diffMap2D, t,v0)
         options = odeset('AbsTol',10^-8,'RelTol',10^-8); % ODE 45 options
-        lifted = diffMapLift(newval, eigvecs, eigvals, lereps,v0, orig, h);
+        liftedHeadway = diffMap2D.lift(newval);
+        lifted = [hwayToPos(liftedHeadway) ; optimalVelocity(h, liftedHeadway, v0)];
         [~,evo] = ode45(@microsystem,[0 t],lifted, options,[v0 len h]);
         evo = evo(end,:)';
         evoCars = getHeadways(evo(1:numCars),len);
         sigma = std(evoCars);
-        coord = diffMapRestrict(evoCars,eigvals,eigvecs, orig, lereps);
+        coord = diffMap2D.restrict(evoCars);
     end
 
 end

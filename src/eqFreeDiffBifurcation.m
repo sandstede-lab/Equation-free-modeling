@@ -14,10 +14,7 @@ options = odeset('AbsTol',10^-8,'RelTol',10^-8);    % ODE 45 options
 options2 = optimoptions('lsqnonlin');
 
 %% load diffusion map data
-load('../data/diffMap1D.mat', 'alignData', 'evals', 'evecs', 'eps');
-allData = alignData;
-[evecs,ia,~] = unique(evecs);
-alignedCars = allData(:, ia);
+load('../data/diffMap1D.mat', 'diffMap1D');
 
 % load the reference states
 load('../data/microBif.mat', 'bif');
@@ -32,17 +29,16 @@ ref_2 = alignMax(ref_2, alignTo);
 ref_1 = alignMax(ref_1, alignTo);
 
 %initial psi values for secant line approximation
-psi_1 = diffMapRestrict(ref_1,evals,evecs,alignedCars,eps);      
-psi_2 = diffMapRestrict(ref_2,evals,evecs,alignedCars,eps);
+psi_1 = diffMap1D.restrict(ref_1);      
+psi_2 = diffMap1D.restrict(ref_2);
 
 % draw the reference bifurcation diagrams
-load('../data/microBif.mat', 'bif', 'vel');
 oldBif = bif;
 figure; hold on;
 scatter(vel(start:end), std(oldBif(1:numCars, start:end)), 200, 'r.');
-sig = interp1(evecs,std(alignedCars(1:numCars,:)),psi_1);        % interpolate to sigma
+sig = interp1(diffMap1D.evecs, std(diffMap1D.data(1:numCars,:)),psi_1);        % interpolate to sigma
 scatter(v0_base1, sig, 400,'k.'); drawnow;
-sig = interp1(evecs,std(alignedCars(1:numCars,:)),psi_2);        % interpolate to sigma
+sig = interp1(diffMap1D.evecs, std(diffMap1D.data(1:numCars,:)),psi_2);        % interpolate to sigma
 scatter(v0_base2, sig, 400,'k.'); drawnow;
 
 %% initialize secant continuation
@@ -56,8 +52,8 @@ for iEq=1:steps
     newGuess = [psi_2; v0_base2] + stepSize *(w/norm(w)); % first guess on the secant line
 
     %% Newton's method using lsqnonlin
-    u = lsqnonlin(@(u)FW(u,alignedCars,w, newGuess, evecs,evals,eps), newGuess,[min(evecs) 0.9],[max(evecs) 1.2],options2);
-    sig = interp1(evecs,std(alignedCars(1:numCars,:)),u(1));        % interpolate to sigma
+    u = lsqnonlin(@(u)FW(u, diffMap1D ,w, newGuess), newGuess,[min(diffMap1D.evecs) 0.9],[max(diffMap1D.evecs) 1.2],options2);
+    sig = interp1(diffMap1D.evecs,std(diffMap1D.data(1:numCars,:)),u(1));        % interpolate to sigma
     scatter(u(2), sig, 'b*'); drawnow;                          % plot the bifurcation diagram as it grows
     
     %% reset the values for the arc length continuation
@@ -76,7 +72,7 @@ xlabel('v0');
 ylabel('\Phi_1');
 
 % interpolate back to the standard deviation values and plot
-sig = interp1(evecs,std(alignedCars(1:numCars,:)),bif(1,:));
+sig = interp1(diffMap1D.evecs,std(diffMap1D.data(1:numCars,:)),bif(1,:));
 figure;
 scatter(bif(2,:),sig);
 title('Interpolated sigmas');
@@ -95,12 +91,12 @@ ylabel('\sigma');
 %
 % RETURNS:
 % fw    - the functions F and w evaluated at these parameters
-    function [fw, J] = FW(u,ref,W,newGuess,evecs,evals,lereps)
+    function [fw, J] = FW(u, diffMap1D, W,newGuess)
         fw = zeros(2,1);
-        fw(1) = F(ref,u(1),u(2),evecs,evals,lereps);
+        fw(1) = F(diffMap1D,u(1),u(2));
         fw(2) = W(1)*(u(1)-newGuess(1)) + W(2)*(u(2) - newGuess(2));
         if(nargout >1)
-            J = jacobian(ref, u(1), u(2),W,evecs,evals,lereps);
+            J = jacobian(diffMap1D, u(1), u(2),W);
         end
     end
 
@@ -115,20 +111,21 @@ ylabel('\sigma');
 % sigma     - the std. of the headways after restricting has occured
 % new_state - the final state of the evolution, which can be used as a
 %               future reference state
-    function [sigma,new_state, sigma2, new_state2] = ler(newval,orig,t,v0,eigvecs,eigvals,lereps,tReference)
-        lifted = diffMapLift(newval, eigvecs, eigvals, lereps,v0, orig, h);
+    function [sigma,new_state, sigma2, new_state2] = ler(newval,diffMap1D,t,v0,tReference)
+        liftedHeadway = diffMap1D.lift(newval);
+        lifted = [hwayToPos(liftedHeadway) ; optimalVelocity(h, liftedHeadway, v0)];
         [~,evo] = ode45(@microsystem,[0 t],lifted, options,[v0 len h]);
-        if (nargin > 7)
+        if (nargin > 4)
             [~,evo2] = ode45(@microsystem,[0 tReference],evo(end,1:2*numCars)',options,[v0 len h]);
             evo2Cars = evo2(end, :)';
             evo2Cars = getHeadways(evo2Cars(1:numCars), len); 
             evo2Cars = alignMax(evo2Cars, alignTo);
-            sigma2 = diffMapRestrict(evo2Cars,eigvals,eigvecs, orig, lereps);
+            sigma2 = diffMap1D.restrict(evo2Cars);
         end
         evoCars = evo(end, :)';
         evoCars = getHeadways(evoCars(1:numCars), len);
         evoCars = alignMax(evoCars, alignTo);
-        sigma = diffMapRestrict(evoCars, eigvals, eigvecs, orig, lereps);
+        sigma = diffMap1D.restrict(evoCars);
         if(nargout >= 2)
             new_state = evo(end,1:2*numCars)';
         end
@@ -144,8 +141,8 @@ ylabel('\sigma');
 %  v0 - the velocity parameter for this state
 %  RETURNS:
 %  dif - the difference which approximates the time derivative
-    function dif = F(ref, sigma,v0,eigvecs,eigvals,lereps)
-        [r0, ~, r1] = ler(sigma, ref, tskip, v0, eigvecs,eigvals,lereps, delta);
+    function dif = F(diffMap1D, sigma, v0)
+        [r0, ~, r1] = ler(sigma, diffMap1D, tskip, v0, delta);
         dif = (r1-r0)/delta;
     end
 
@@ -157,11 +154,11 @@ ylabel('\sigma');
 % J- The Jacobian, which will be given by
 % | F_sigma    F_v0  |
 % | w_sigma    w_vo  |
-    function J = jacobian(ref, sigma, v0,w,eigvecs,eigvals,lereps)
+    function J = jacobian(diffMap1D, sigma, v0, w)
         J = zeros(2);
-        unchanged = F(ref, sigma, v0,eigvecs,eigvals,lereps);
-        J(1,1) = (F(ref, sigma + delSigma, v0,eigvecs,eigvals,lereps) - unchanged)/delSigma;
-        J(1,2) = (F(ref, sigma,v0 + delv0,eigvecs,eigvals,lereps) - unchanged)/delv0;
+        unchanged = F(diffMap1D, sigma, v0);
+        J(1,1) = (F(diffMap1D, sigma + delSigma, v0) - unchanged)/delSigma;
+        J(1,2) = (F(diffMap1D, sigma,v0 + delv0) - unchanged)/delv0;
         J(2,:) = w';
     end
 

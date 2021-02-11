@@ -16,24 +16,22 @@ end
 
 numEigvecs = 1;       % number of eigenvectors to return
 weight = 5;  % median weight to choose epsilon 
-D = squareform(pdist(alignData'));
-eps = weight*median(D(:)); % choose epsilon for the kernel based on the pairwise distances
-[evecs,evals] = diffMap(eps,D,numEigvecs);          % calculate the diffusion map
-save('../data/diffMap1D.mat', 'alignData', 'evals', 'evecs', 'eps', 'vel');
+diffMap1D = DiffusionMap(alignData, numEigvecs, weight);
+
+save('../data/diffMap1D.mat', 'diffMap1D',  'vel');
 
 figure;
-scatter(evecs, std(hways),100,'.');
+scatter(diffMap1D.evecs, std(hways),100,'.');
 xlabel('\psi_1', 'FontSize',14);
 ylabel('\sigma', 'FontSize',14);
 title('\sigma vs. \psi_1','FontSize',14);
 
 %% 2D diffusion map
 
-numEigvecs = 2; % number of eigenvectors to return
-D = squareform(pdist(hways'));
-eps = weight*median(D(:)); % choose epsilon for the kernel based on the pairwise distances
-[evecs,evals] = diffMap(eps,D,numEigvecs);          % calculate the diffusion map
-save('../data/diffMap2D.mat', 'hways', 'eps', 'evecs', 'evals', 'vel');
+numEigvecs = 2;       % number of eigenvectors to return
+diffMap2D = DiffusionMap(hways, numEigvecs, weight);
+
+save('../data/diffMap2D.mat', 'diffMap2D', 'vel');
 
 %{
 %calculate how unique each eigen direction is
@@ -47,7 +45,7 @@ end
 [~, max1] = max(hways,[],1);  % locate the max headway for each data point
 % plot eigenvector 1 vs eigenvector 2, colored by max headway location
 figure;
-scatter(evecs(:,1), evecs(:,2), 100, max1,'.'); hold on;
+scatter(diffMap2D.evecs(:,1), diffMap2D.evecs(:,2), 100, max1,'.'); hold on;
 color = colorbar;
 xlabel(color, 'Wave Position', 'fontsize', 14)
 colormap(jet);
@@ -58,7 +56,7 @@ drawnow;
 
 % plot eigenvector 1 vs eigenvector 2, colored by standard deviation
 figure;
-scatter(evecs(:,1), evecs(:,2), 100,  std(hways),'.');
+scatter(diffMap2D.evecs(:,1), diffMap2D.evecs(:,2), 100,  std(hways),'.');
 colorbar;
 color = colorbar;
 xlabel(color, '\sigma', 'fontsize', 14)
