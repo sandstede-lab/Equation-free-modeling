@@ -1,5 +1,6 @@
 %% load traffic data
-load('../data/30data.mat', 'hways')
+load('../data/30data.mat', 'hways', 'allData')
+vel = allData(:,end);
 dims = size(hways);
 numCars = dims(1);
 numData = dims(2);
@@ -18,7 +19,7 @@ weight = 5;  % median weight to choose epsilon
 D = squareform(pdist(alignData'));
 eps = weight*median(D(:)); % choose epsilon for the kernel based on the pairwise distances
 [evecs,evals] = diffMap(eps,D,numEigvecs);          % calculate the diffusion map
-save('../data/diffMap1D.mat', 'alignData', 'evals', 'evecs', 'eps');
+save('../data/diffMap1D.mat', 'alignData', 'evals', 'evecs', 'eps', 'vel');
 
 figure;
 scatter(evecs, std(hways),100,'.');
@@ -32,15 +33,16 @@ numEigvecs = 2; % number of eigenvectors to return
 D = squareform(pdist(hways'));
 eps = weight*median(D(:)); % choose epsilon for the kernel based on the pairwise distances
 [evecs,evals] = diffMap(eps,D,numEigvecs);          % calculate the diffusion map
-save('../data/diffMap2D.mat', 'hways', 'eps', 'evecs', 'evals');
+save('../data/diffMap2D.mat', 'hways', 'eps', 'evecs', 'evals', 'vel');
 
-
+%{
 %calculate how unique each eigen direction is
 r = zeros(numEigvecs, 1);
 r(1) = 1;
 for j = 2:numEigvecs
     r(j) = linearFit(evecs,j);
 end
+%}
 
 [~, max1] = max(hways,[],1);  % locate the max headway for each data point
 % plot eigenvector 1 vs eigenvector 2, colored by max headway location
