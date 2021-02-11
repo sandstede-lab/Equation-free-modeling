@@ -9,13 +9,13 @@ Compute a diffusion map
 2. For the traffic data: createDiffMaps.m
 
 Test the lifting and restriction operators
-1.
+1. Lift operator on the 1D diffusion map: liftTest1D.m
 
-2.
+2. Restriction operator on the 1D diffusion map: restrictTest1D.m
 
-3.
+3. Lift operator on the 2D diffusion map: listTest2D.m
 
-4.
+4. Restriction operator on the 2D diffusion map: restrictTest2D.m
 
 Computing the bifurcation diagram
 1. Using the microsystem: microBifurcation.m
