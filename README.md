@@ -28,14 +28,14 @@ Computing the bifurcation diagram
 
 
 Data files
-1. microBif.mat - Matlab datafile containing the data points on the bifurcation curve by sigma and v0 saved as 'bif'
+1. refStates.mat - Matlab datafile containing the two starting references states for the microsystem bifurcation 'ref1' and 'ref2' as well as their velocities 'v0_base1' and 'v0_base2'
 
-2. refStates.mat - Matlab datafile containing the two starting references states 'ref1' and 'ref2' as well as their velocities 'v0_base1' and 'v0_base2'
+2. microBif.mat - Matlab datafile containing the data points on the bifurcation curve by sigma and v0 saved as 'bif' (headways, c, 0, v0)
 
-3. 30data.mat - Matlab datafile containing the traffic profiles used to create the diffusion map
+3. 30data.mat - Matlab datafile containing the traffic profiles 'allData' (car positions, car velocities, t, mu, v0) and headways 'hways' generated with 30 cars, length 60
 
-4. diffMap1D.mat - Matlab datafile containing the aligned data 'alignData' used to create the 1D diffusion map as well as the diffusion map variables 'evals', 'evecs', and 'eps
+4. diffMap1D.mat - Matlab datafile containing the aligned data 'alignData' and velocities 'vel' used to create the 1D diffusion map as well as the diffusion map variables 'evals', 'evecs', and 'eps
 
-5. diffMap2D.mat - Matlab datafile containing the traffic data 'hways' used to create the 2D diffusion map as well as the diffusion map variables 'eps', 'evecs', 'evals'
+5. diffMap2D.mat - Matlab datafile containing the traffic data 'hways' and velocities 'vel' used to create the 2D diffusion map as well as the diffusion map variables 'eps', 'evecs', 'evals'
 
 
