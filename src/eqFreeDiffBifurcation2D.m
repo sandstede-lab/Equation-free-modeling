@@ -4,6 +4,9 @@ clear workspace;
 h = 2.4;                % optimal velocity parameter
 len = 60;               % length of the ring road
 numCars = 30;           % number of cars
+steps = 800;                                % number of steps to take around the curve
+stepSize = .003;                            % step size for the secant line approximation
+
 lsqOptions = optimset('Display','iter'); %lsqnonlin options
 options2 = optimoptions('lsqnonlin');
 options2.OptimalityTolerance = 1e-10;
@@ -18,15 +21,13 @@ load('../data/microBif.mat', 'bif');
 vel = bif(end, :);
 n = diffMap2D.restrict(bif(1:numCars,:));
 n = sqrt(n(1,:).^2 + n(2,:).^2);
-start = 50;                                % location on the curve to start at
-change = 1;
-v0_base2 = vel(start + change);
-v0_base1 = vel(start);
-ref_2 = bif(1:numCars,start + change);
-ref_1 = bif(1:numCars,start);
+v0_base2 = vel(2);
+v0_base1 = vel(1);
+ref_2 = bif(1:numCars, 2);
+ref_1 = bif(1:numCars, 1);
+T2 = -numCars/bif(numCars + 1, 2);
+T1 = -numCars/bif(numCars + 1, 1);
 
-T2 = -numCars/bif(numCars + 1, start + change);
-T1 = -numCars/bif(numCars + 1, start);
 embed_2 = diffMap2D.restrict(ref_2);
 embed_1 = diffMap2D.restrict(ref_1);
 p2 = norm(embed_2);
@@ -38,26 +39,23 @@ rayAngle = atan2(embed_2(2), embed_2(1));
 % draw the bifurcation diagrams
 figure;
 subplot(1,2,1);hold on;
-scatter(vel(start:end), n(start:end), 50, 'r.');
+scatter(vel, n, 50, 'r.');
 xlabel('v_0');
 ylabel('\rho');
 scatter(v0_base1, p1, 400,'k.'); drawnow;
 scatter(v0_base2, p2, 400,'k.'); drawnow;
 
-
 subplot(1,2,2); hold on;
-scatter(n(start:end), -numCars./bif(numCars + 1, start:end), 50, 'r.');
+scatter(n, -numCars./bif(numCars + 1, :), 50, 'r.');
 scatter(p1,T1, 400, 'k.'); drawnow;
 scatter(p2, T2, 400, 'k.'); drawnow;
 xlabel('\rho');
 ylabel('T');
 
 %% initialize secant continuation
-steps = 500;                                % number of steps to take around the curve
 bif = zeros(3,steps);                       % array to hold the bifurcation values
 sigma = zeros(1,steps);
 guesses = zeros(3,steps);
-stepSize = .003;                            % step size for the secant line approximation
 
 %% pseudo arc length continuation
 for iEq=1:steps
@@ -66,7 +64,6 @@ for iEq=1:steps
     scaledW = w ./ coord2;
     newGuess = coord2 + stepSize *(w/norm(w)); % first guess on the secant line
     guesses(:,iEq) = newGuess;
-   
     scaledNewGuess = newGuess ./ coord2;
 
     %% alternate Newton's method using lsqnonlin
@@ -94,10 +91,7 @@ end
 %% function to zero
 % PARAMETERS:
 % u         - the pair of radius and period (sigma,T,v0) that we're trying to find with
-% allData
-% evecs
-% evals
-% lereps
+% diffMap2D
 % coord2
 % ray
 % scaledW
