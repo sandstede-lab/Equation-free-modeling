@@ -3,28 +3,18 @@ Enabling equation-free modeling via diffusion maps by Tracy Chin, Jacob Ruth, Cl
 
 Generate traffic data: genTrafficData.m 
 
-Compute a diffusion map
-1. For any data: diffMap.m
+Compute a diffusion map: createDiffMaps.m
 
-2. For the traffic data: createDiffMaps.m
-
-Test the lifting and restriction operators
-1. Lift operator on the 1D diffusion map: liftTest1D.m
-
-2. Restriction operator on the 1D diffusion map: restrictTest1D.m
-
-3. Lift operator on the 2D diffusion map: listTest2D.m
-
-4. Restriction operator on the 2D diffusion map: restrictTest2D.m
+Test the lifting and restriction operators: testOperators.m 
 
 Computing the bifurcation diagram
 1. Using the microsystem: microBifurcation.m
     
 2. Using the standard deviation as a marco variable: eqFreeBifurcation.m 
 
-3. Using a 1D diffusion map applied to phase-shifted traffic profiles: eqFreeDiffBifurcation.m 
+3. Using a 1D diffusion map applied to phase-shifted traffic profiles: eqFreeDiffBifurcation.m (after createDiffMaps.m)
 
-4. Using a 2D diffusion map applied to traffic profiles: eqFreeDiffBifurcation2D.m 
+4. Using a 2D diffusion map applied to traffic profiles: eqFreeDiffBifurcation2D.m (after createDiffMaps.m)
 
 
 Data files
@@ -33,9 +23,5 @@ Data files
 2. microBif.mat - Matlab datafile containing the data points on the bifurcation curve by sigma and v0 saved as 'bif' (headways, c, 0, v0)
 
 3. 30data.mat - Matlab datafile containing the traffic profiles 'allData' (car positions, car velocities, t, mu, v0) and headways 'hways' generated with 30 cars, length 60
-
-4. diffMap1D.mat - Matlab datafile containing the aligned data 'alignData' and velocities 'vel' used to create the 1D diffusion map as well as the diffusion map variables 'evals', 'evecs', and 'eps
-
-5. diffMap2D.mat - Matlab datafile containing the traffic data 'hways' and velocities 'vel' used to create the 2D diffusion map as well as the diffusion map variables 'eps', 'evecs', 'evals'
 
 
