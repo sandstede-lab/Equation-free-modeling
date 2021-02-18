@@ -5,7 +5,7 @@ load('../data/diffMap1D.mat', 'diffMap1D');
 
 % test the restriction operator
 [percentError, restricted, restrictDiff] = diffMap1D.testRestrict();
-disp(mean(percentError)); % 0.0014
+disp(mean(percentError)); 
 
 figure; % plot the differences
 scatter(diffMap1D.evecs, restricted, 200, restrictDiff, '.');
@@ -14,10 +14,9 @@ title('Restricted Points Colored by Distance from Original Embedding', 'fontsize
 xlabel('Original Coordinate', 'fontsize', 12);
 ylabel('Restricted Coordinate', 'fontsize', 12);
 
-
 % test the lift operator 
 [percentError, restricted, restrictDiff] = diffMap1D.testLift(2);
-disp(mean(percentError)); % 0.0014
+disp(mean(percentError)); 
 
 figure; % plot the differences
 scatter(diffMap1D.evecs, restricted, 200, restrictDiff, '.');
@@ -28,16 +27,12 @@ title('Lifted and Restricted Points Colored by Distance from Original Embedding'
 xlabel('Original Coordinates', 'fontsize', 18);
 ylabel('New Coordinates', 'fontsize', 18);
 
-%% load diffusion map data
-%% tests how accurate the restriction operator is when a data point is
-% removed from the diffusion map
-
 %% load 2D diffusion map data
 load('../data/diffMap2D.mat', 'diffMap2D');
 
 % test the restriction operator
 [percentError, restricted, restrictDiff] = diffMap2D.testRestrict();
-disp(mean(percentError)); %  0.0073
+disp(mean(percentError)); 
 
 figure;
 scatter(restricted(:,1), restricted(:,2), 200, restrictDiff, '.');
@@ -46,8 +41,8 @@ title('Restricted Points Colored by Distance from Original Embedding', 'fontsize
 xlabel('\psi_1', 'fontsize', 12);
 
 % test the lifting operator
-[percentError, restricted, restrictDiff] = diffMap2D.testLift(10);
-disp(mean(percentError)); %0.014
+[percentError, restricted, restrictDiff] = diffMap2D.testLift(8);
+disp(mean(percentError)); 
 
 figure;
 scatter(restricted(:,1), restricted(:,2), 200, restrictDiff, '.');
