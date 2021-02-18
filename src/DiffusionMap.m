@@ -46,15 +46,24 @@ classdef DiffusionMap
         % restriction operator with the diffusion map
         % newData is a micro variable
         % pnew is the restriction of newData
-        function pnew = restrict(obj, newData, i)
+        function pnew = restrict(obj, newData)
+            dist = pdist2(newData',obj.data')';
+            w = exp(-dist.^2/obj.epsilon^2);
+            k = (1./sum(w)).*w;
+            pnew = (obj.evecs' * k)./diag(obj.evals);
+        end
+        
+        % restriction operator with the diffusion map
+        % newData is a micro variable
+        % i is the datapoint to leave out 
+        % pnew is the restriction of newData
+        function pnew = restrictVal(obj, newData, i)
             allData = obj.data;
             vecs = obj.evecs;
             
-            if nargin > 2
-                % remove this point from the data set
-                allData(:, i) = [];
-                vecs(i,:) = [];
-            end
+            % remove this point from the data set
+            allData(:, i) = [];
+            vecs(i,:) = [];
             
             dist = pdist2(newData',allData')';
             w = exp(-dist.^2/obj.epsilon^2);
@@ -65,10 +74,9 @@ classdef DiffusionMap
         % lifting operator with the diffusion map
         % newVal is a macro variable
         % v0, h
-        function lifted = lift(obj, newVal)
+        function lifted = lift(obj, newVal, validPoints)
             
             % find closest datapoints
-            validPoints = 10;
             newDist = pdist2(newVal',obj.evecs);
             [~, index] = sort(newDist, 2, 'ascend');
             idxMin = index(1:validPoints);
@@ -93,11 +101,8 @@ classdef DiffusionMap
         %   is removed from the data set
         %   better approximated coordinates are given by diff map restrict, when
         %   the value is still included in the data set
-        function [percentError, restricted, restrictDiff] = testRestrict(obj, numRestrict)
-            if nargin < 2
-                numRestrict = length(obj.evecs);
-            end
-            
+        function [percentError, restricted, restrictDiff] = testRestrict(obj)
+            numRestrict = length(obj.evecs);
             restricted = zeros(numRestrict, length(obj.evals));
             restrictDiff = zeros(numRestrict, 1);
             percentError = zeros(numRestrict,1);
@@ -107,17 +112,18 @@ classdef DiffusionMap
                     disp(i);
                 end
                 
-                restricted(i, :) = restrict(obj,obj.data(:,i), i); % restrict this point
+                % restrict this point then measure how far it is from its
+                % true embedding
+                restricted(i, :) = restrictVal(obj,obj.data(:,i), i); 
                 restrictDiff(i) = norm((obj.evecs(i, :) - restricted(i, :)));
                 percentError(i) = restrictDiff(i)/norm(obj.evecs(i, :));
             end
         end
         
-        function[percentError, restricted, restrictDiff] = testLift(obj, numRestrict)
-            if nargin < 2
-                numRestrict = length(obj.evecs);
-            end
-            
+        % test the R(L) relationship
+        % k is the number of points to use in the lifting operator
+        function[percentError, restricted, restrictDiff] = testLift(obj, k)
+            numRestrict = length(obj.evecs);
             restricted = zeros(numRestrict, length(obj.evals));
             restrictDiff = zeros(numRestrict, 1);
             percentError = zeros(numRestrict,1);
@@ -127,11 +133,11 @@ classdef DiffusionMap
                     disp(i);
                 end
    
-                lifted = lift(obj, obj.evecs(i, :)');  % lift the profile
-               % restrictDiff(i) = norm( lifted - obj.data(:,i));
-               % percentError(i) = abs(lifte)-obj.evecs(i,:))/abs(obj.evecs(i,:));
-                restricted(i, :) = restrict(obj, lifted); % restrict the lifted profile
-                restrictDiff(i) = norm(restricted(i, :) - obj.evecs(i,:));    % compute the difference from the original embedding
+                % lift this point then restrict it to see how different it
+                % is from the original embedding
+                lifted = lift(obj, obj.evecs(i, :)', k);  
+                restricted(i, :) = restrict(obj, lifted); 
+                restrictDiff(i) = norm(restricted(i, :) - obj.evecs(i,:));  
                 percentError(i) = abs(restricted(i, :) -obj.evecs(i,:))/abs(obj.evecs(i,:));
             end
         end

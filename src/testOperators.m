@@ -16,7 +16,7 @@ ylabel('Restricted Coordinate', 'fontsize', 12);
 
 
 % test the lift operator 
-[percentError, restricted, restrictDiff] = diffMap1D.testLift();
+[percentError, restricted, restrictDiff] = diffMap1D.testLift(2);
 disp(mean(percentError)); % 0.0014
 
 figure; % plot the differences
@@ -46,7 +46,7 @@ title('Restricted Points Colored by Distance from Original Embedding', 'fontsize
 xlabel('\psi_1', 'fontsize', 12);
 
 % test the lifting operator
-[percentError, restricted, restrictDiff] = diffMap2D.testLift();
+[percentError, restricted, restrictDiff] = diffMap2D.testLift(10);
 disp(mean(percentError)); %0.014
 
 figure;
