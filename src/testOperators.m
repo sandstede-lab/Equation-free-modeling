@@ -15,7 +15,7 @@ xlabel('Original Coordinate', 'fontsize', 12);
 ylabel('Restricted Coordinate', 'fontsize', 12);
 
 % test the lift operator 
-[percentError, restricted, restrictDiff] = diffMap1D.testLift(2);
+[percentError, restricted, restrictDiff] = diffMap1D.testLift(3);
 disp(mean(percentError)); 
 
 figure; % plot the differences
@@ -26,7 +26,7 @@ cb.Ruler.MinorTick = 'on';
 title('Lifted and Restricted Points Colored by Distance from Original Embedding', 'fontsize', 16);
 xlabel('Original Coordinates', 'fontsize', 18);
 ylabel('New Coordinates', 'fontsize', 18);
-
+%{
 %% load 2D diffusion map data
 load('../data/diffMap2D.mat', 'diffMap2D');
 
@@ -53,3 +53,4 @@ title('Lifted and Restricted Points Colored by Distance from Original Embedding'
 xlabel('\psi_1', 'fontsize', 18);
 ylabel('\psi_2', 'fontsize', 18);
 ylabel('\psi_2', 'fontsize', 12);
+%}
