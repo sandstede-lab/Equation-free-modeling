@@ -26,7 +26,7 @@ cb.Ruler.MinorTick = 'on';
 title('Lifted and Restricted Points Colored by Distance from Original Embedding', 'fontsize', 16);
 xlabel('Original Coordinates', 'fontsize', 18);
 ylabel('New Coordinates', 'fontsize', 18);
-%{
+
 %% load 2D diffusion map data
 load('../data/diffMap2D.mat', 'diffMap2D');
 
@@ -53,4 +53,3 @@ title('Lifted and Restricted Points Colored by Distance from Original Embedding'
 xlabel('\psi_1', 'fontsize', 18);
 ylabel('\psi_2', 'fontsize', 18);
 ylabel('\psi_2', 'fontsize', 12);
-%}
