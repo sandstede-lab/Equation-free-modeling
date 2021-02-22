@@ -5,8 +5,8 @@ load('../data/30data.mat', 'hways', 'allData')
 
 rng(18);                    % set random seed
 numReduce = 1000;           % number of points to reduce the diffusion map to
-numData = dims(hways, 2);   % number of points in the dataset
-numCars = dims(hways, 1);   % number of cars
+numData = size(hways, 2);   % number of points in the dataset
+numCars = size(hways, 1);   % number of cars
 alignTo = 10;               % car to align data to
 weight = 5;                 % median weight to choose epsilon 
 linearFit = false;          % compute the linear fit or not
@@ -60,7 +60,7 @@ newAlignData = sortedData(:, keep);
 
 % rerun diffMap with these points
 diffMap1D = DiffusionMap(newAlignData, numEigvecs, weight);
-save('../data/1000diffMap1D.mat', 'diffMap1D');
+save('../data/1000diffMap1D.mat', 'diffMap1D', 'newAlignData');
 
 % plot the new diffusion map
 if plotMaps
@@ -160,7 +160,7 @@ max1000 = max1000(keep);
 
 % rerun diff map with these points
 diffMap2D = DiffusionMap(newData, numEigvecs, weight);
-save('../data/1000diffMap2D.mat', 'diffMap2D');
+save('../data/1000diffMap2D.mat', 'diffMap2D', 'newData');
 
 if plotMaps
     % plot eigenvector 1 vs eigenvector 2, colored by max headway location
