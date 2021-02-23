@@ -5,21 +5,26 @@ h = 2.4;                % optimal velocity parameter
 len = 60;              % length of the ring road
 numCars = 30;           % number of cars
 alignTo = 10;
-delta = 1000;
-stepSize = .001;     % step size for the secant line approximation
-numSteps = 150;          % number of steps to take around the curve
+tskip = 20;
+delta = 50; 
 options = odeset('AbsTol',10^-8,'RelTol',10^-8);    % ODE 45 options
+lsqOptions = optimset('Display','iter'); %lsqnonlin options
 options2 = optimoptions('lsqnonlin');
 options2.OptimalityTolerance = 1e-11;
 options2.FunctionTolerance = 1e-11;
+options2.Display = 'iter';
 full = false;
 k = 3; % number of points to use for lifting 
 
 %% load diffusion map data
 if full
     load('../data/diffMap1D.mat', 'diffMap1D');
+    numSteps = 140;
+    stepSize = 0.0001;
 else
     load('../data/1000diffMap1D.mat', 'diffMap1D');
+    numSteps = 78;     
+    stepSize = .001; 
 end
 
 % load the reference states and comparison bifurcation diagram
@@ -59,6 +64,7 @@ for iEq=1:numSteps
      
     u = lsqnonlin(@(u)FW(u, diffMap1D ,w, newGuess), newGuess,...
         [min(diffMap1D.evecs) 0.9],[max(diffMap1D.evecs) 1.2],options2);
+    [u(1), sig] = ler(u(1), diffMap1D, u(2));
     scatter(u(2), sig, 'b*'); drawnow;                          % plot the bifurcation diagram as it grows
     
     %% reset the values for the arc length continuation
@@ -102,13 +108,21 @@ end
 % RETURNS:
 % psi     - new macrovariable
 % sigma   - standard deviation of the evolved headways
-    function [psi, sigma] = ler(newval,diffMap1D,v0,tReference)
+    function [psi, sigma, psi2] = ler(newval,diffMap1D,v0,tReference)
         liftedHeadway = diffMap1D.lift(newval, k);
         evoCars = [hwayToPos(liftedHeadway) ; optimalVelocity(h, liftedHeadway, v0)];
-        [~,evo] = ode45(@microsystem,[0 tReference],evoCars,options,[v0 len h]);
-        evoCars2 = getHeadways(evo(end, 1:numCars)', len);
-        sigma = std(evoCars2);
-        psi = diffMap1D.restrict(alignMax(evoCars2, alignTo));    
+        
+        [~,evo] = ode45(@microsystem,[0 tskip],evoCars,options,[v0 len h]);
+        evoCars = getHeadways(evo(end, 1:numCars)', len);
+        sigma = std(evoCars);
+        psi = diffMap1D.restrict(alignMax(evoCars, alignTo));
+        
+        if nargin > 3
+            [~,evo2] = ode45(@microsystem,[0 tReference],evo(end,:),options,[v0 len h]);
+            evoCars2 = getHeadways(evo2(end, 1:numCars)', len);
+            sigma = std(evoCars2);
+            psi2 = diffMap1D.restrict(alignMax(evoCars2, alignTo)); 
+        end
     end
 
 %% Finite Difference Quotient
@@ -118,8 +132,8 @@ end
 %  RETURNS:
 %  dif - the difference which approximates the time derivative
     function dif = F(diffMap1D, sigma, v0)
-        [r1, sig] = ler(sigma, diffMap1D, v0, delta);
-        dif = (r1-sigma)/delta;
+        [r0, ~, r1] = ler(sigma, diffMap1D, v0, delta);
+        dif = (r1-r0)/delta;
     end
 
 %% Jacobian for newton's method
