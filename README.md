@@ -1,27 +1,38 @@
-# eq-free
-Enabling equation-free modeling via diffusion maps by Tracy Chin, Jacob Ruth, Clayton Sanford, Rebecca Santorella, Paul Carter, and Bjorn Sandstede
+# Enabling Equation-Free Modeling via Diffusion Maps 
 
-Generate traffic data: genTrafficData.m 
+Equation-free modeling estimates macro-level behavior through a coarse time stepper in three steps: (1) lift: build the microstate from the macrostate, (2), evolve: simulate the microsystem for short bursts, and (3) restrict: estimate the macrostate from the evolved microstate. 
 
-Compute a diffusion map: createDiffMaps.m
+In this work, we use diffuson maps to identify macroscopic variables in a traffic model and define appropriate lifting and restriction operators. We then use these operators to compute and continue traffic jam solutions. 
 
-Test the lifting and restriction operators: testOperators.m 
+**Folder navivgation:**  
+**1.) src** contains the source code  
+**2.) data** contains raw data files in .csv files
+**3.) results** contains .csv files of results 
+ 
+## Generate traffic data
+Data used in the diffusion maps is created with genTrafficData.m, and saved in the /data directory. 
 
-Computing the bifurcation diagram
-1. Using the microsystem: microBifurcation.m
+## Compute a diffusion map
+Diffusoin maps for the traffic data are computed with and explored through createDiffMaps.m.
+
+## Test the lifting and restriction operators
+We test the accuracy of the lifting and restriction operators with the script testOperators.m.
+
+## Computing the bifurcation diagram
+**1.)** Using the microsystem: microBifurcation.m
     
-2. Using the standard deviation as a marco variable: eqFreeBifurcation.m 
+**2.)** Using the standard deviation as a marco variable: eqFreeBifurcation.m 
 
-3. Using a 1D diffusion map applied to phase-shifted traffic profiles: eqFreeDiffBifurcation.m (after createDiffMaps.m)
+**3.)** Using a 1D diffusion map applied to phase-shifted traffic profiles: eqFreeDiffBifurcation.m
 
-4. Using a 2D diffusion map applied to traffic profiles: eqFreeDiffBifurcation2D.m (after createDiffMaps.m)
+**4.)** Using a 2D diffusion map applied to traffic profiles: eqFreeDiffBifurcation2D.m 
 
-
-Data files
-1. refStates.mat - Matlab datafile containing the two starting references states for the microsystem bifurcation 'ref1' and 'ref2' as well as their velocities 'v0_base1' and 'v0_base2'
-
-2. microBif.mat - Matlab datafile containing the data points on the bifurcation curve by sigma and v0 saved as 'bif' (headways, c, 0, v0)
-
-3. 30data.mat - Matlab datafile containing the traffic profiles 'allData' (car positions, car velocities, t, mu, v0) and headways 'hways' generated with 30 cars, length 60
-
+**BibTex Citation:**  
+```
+@article {eq-free-traffic,  
+	author = {Chin, Tracy and Ruth, Jacob and Sanford, Clayton and Santorella, Rebecca and Carter, Paul and Sandstede, Bjorn},  
+	title = {Enabling Equation-Free Modeling via Diffusion Maps},  
+	year = {2021},  
+}
+```
 
