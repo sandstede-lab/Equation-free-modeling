@@ -4,20 +4,21 @@ clear workspace;
 h = 2.4;                % optimal velocity parameter
 len = 60;               % length of the ring road
 numCars = 30;           % number of cars
-steps = 100;                                % number of steps to take around the curve
-stepSize = .01;                            % step size for the secant line approximation
-full = true;
-tskip = 500;
-nPeriod = 1;
+full = false;
+tskip = 300;
+nPeriod = 10;
 k = 8;
-debugPlot = false;
-foptions = optimoptions(@fsolve, 'TolFun',1e-15,'TolX',1e-15, 'Display', 'iter');
+foptions = optimoptions(@fsolve, 'Display', 'iter');
 
 %% load diffusion map data
 if full
     load('../data/diffMap2D.mat', 'diffMap2D');
+    stepSize = 0.0005;
+    steps = 105;
 else
     load('../data/1000diffMap2D.mat', 'diffMap2D');
+    stepSize = 0.002;
+    steps = 205;
 end
 
 % load the reference states and previous bifurcation diagram
@@ -25,22 +26,19 @@ load('../data/microBif.mat', 'bif');
 vel = bif(end, :);
 embed = diffMap2D.restrict(bif(1:numCars,:));
 n = sqrt(embed(1,:).^2 + embed(2,:).^2);
-start = 1;
-v0_base2 = vel(start + 1);
+T = -numCars./bif(numCars+ 1,:);
+
+start = length(vel)-1;
+change = -1;
+v0_base2 = vel(start + change);
 v0_base1 = vel(start);
-ref_2 = bif(1:numCars, start + 1);
-ref_1 = bif(1:numCars, start);
-T = -numCars./bif(numCars+1,:);
 T1 = T(start);
 T2 = T(start + 1);
-
-embed_2 = diffMap2D.restrict(ref_2);
-embed_1 = diffMap2D.restrict(ref_1);
-p2 = norm(embed_2);
-p1 = norm(embed_1);
+p2 = norm(embed(:, start + change));
+p1 = norm(embed(:, start));
 coord2 = [p2, T1, v0_base2];
 coord1 = [p1, T2, v0_base1];
-rayAngle = atan2(embed_2(2), embed_2(1));
+rayAngle = 0;
 
 % draw the bifurcation diagrams
 figure;
@@ -91,9 +89,9 @@ for iEq=1:steps
     
     % plot the diagram
     subplot(1,2,1); hold on;
-    scatter(bif(3, iEq), u(1), 400, 'b.'); drawnow;
+    scatter(bif(3, iEq), bif(1,iEq), 400, 'b.'); drawnow;
     subplot(1,2,2); hold on;
-    scatter(u(1), u(2), 400, 'b.'); drawnow;
+    scatter(bif(1,iEq), bif(2,iEq), 400, 'b.'); drawnow;
     
 end
 
@@ -146,25 +144,17 @@ end
         [~,evo] = ode45(@microsystem,[0 tskip],lifted, options,[v0 len h]);
         evoCars = getHeadways(evo(end,1:numCars)',len);
         coord = diffMap2D.restrict(evoCars);
-        sigma = std(evoCars);
+        sigma = std(evoCars(1:numCars));
         
         if nargin > 3
             [~,evo2] = ode45(@microsystem,[0 t],evo(end,:), options,[v0 len h]);
             evoCars2 = getHeadways(evo2(end, 1:numCars)',len);
-            sigma = std(evoCars2);
+            sigma = std(evoCars2(1:numCars));
             coord2 = diffMap2D.restrict(evoCars2);
             
-            if debugPlot
-                clf;
-                subplot(1,2,1); hold on;
-                plot(1:30, evoCars);
-                plot(1:30, evoCars2);
-                subplot(1,2,2); hold on;
-                scatter(diffMap2D.evecs(:,1), diffMap2D.evecs(:,2));
-                scatter(coord(1), coord(2), 200, 'r.');
-                scatter(coord2(1), coord2(2), 200, 'k.');
-                drawnow;
-            end
+           % figure; hold on;
+           % scatter(1:30, evoCars(1:30), 'ko');
+           % scatter(1:30, evoCars2(1:30), 'b*');
         end
     end
 
