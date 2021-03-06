@@ -1,13 +1,13 @@
 %% microFJ gives the function to zero for finding equilibrium
 % sys1 - reference state
 % sys2 - reference state for phase shift condition
-% N - discretization points
 % M - number of cars (M must divide N)
+% N - discretization points
 % L - length of road
 % tau - momentum constant;
 % Returns:
 % F - the function to zero for an equilibrium solution
-function [F,J, L, consv] = microFJ(sys1,sys2,M,N,L, v0, tau)
+function [F,J, L] = microFJ(sys1,sys2,M,N,L, v0, tau, h)
 
 k = N/M;
 mu = sys1(end);
@@ -30,7 +30,7 @@ LD = D;                                                                %  phase 
 ln_consv = sparse(ones(M,1),k*[1:M],ones(M,1),1,N);     % conservation law vector
 
 %% Function
-F = [ LN*u + optimalVelocity(shift*u, v0) - optimalVelocity(u, v0) + mu.*ones(N,1);
+F = [ LN*u + optimalVelocity(h, shift*u, v0) - optimalVelocity(h, u, v0) + mu.*ones(N,1);
     ln_consv*u - L; ...
     (LD*u)'*(u-u0)...
     ];
@@ -59,16 +59,8 @@ if nargout > 1
 end
 
 
-
-%% optimal veloctiy function
-    function v = optimalVelocity(headway,v0)
-        h = 2.4;
-        v = v0 * (tanh(headway - h) + tanh(h));
-    end
-
 % optimal velocity derivative
     function v = dOptimalVelocity(headway,v0)
-        h=2.4;
         v = v0*(1-tanh(headway - h).^2);
     end
 
