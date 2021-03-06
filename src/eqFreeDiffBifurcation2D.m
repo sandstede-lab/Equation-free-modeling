@@ -4,25 +4,29 @@ clear workspace;
 h = 2.4;                % optimal velocity parameter
 len = 60;               % length of the ring road
 numCars = 30;           % number of cars
-full = false;
+full = true;
 tskip = 300;
 nPeriod = 10;
 k = 8;
+numEigvecs = 2;
+weight = 5;
 foptions = optimoptions(@fsolve, 'Display', 'iter');
 
 %% load diffusion map data
 if full
-    load('../data/diffMap2D.mat', 'diffMap2D');
+    hways = readmatrix('../data/data_headways.csv');
+    diffMap2D = DiffusionMap(hways, numEigvecs, weight);
     stepSize = 0.0005;
-    steps = 105;
+    steps = 100;
 else
-    load('../data/1000diffMap2D.mat', 'diffMap2D');
+    newData = readmatrix('../data/1000diffMap2D.csv');
+    diffMap2D = DiffusionMap(newData, numEigvecs, weight);
     stepSize = 0.002;
     steps = 205;
 end
 
 % load the reference states and previous bifurcation diagram
-load('../data/microBif.mat', 'bif');
+bif = readmatrix('../results/microBif.csv');
 vel = bif(end, :);
 embed = diffMap2D.restrict(bif(1:numCars,:));
 n = sqrt(embed(1,:).^2 + embed(2,:).^2);
@@ -58,8 +62,7 @@ xlabel('\rho');
 ylabel('T');
 
 %% initialize secant continuation
-bif = zeros(3,steps);
-sigma = zeros(1,steps);
+bif = zeros(4,steps);
 
 %% pseudo arc length continuation
 for iEq=1:steps
@@ -79,12 +82,12 @@ for iEq=1:steps
     %% reset the values for the arc length continuation
     coord1 = coord2;
     coord2 = u;
-    sigma(iEq) = sig; % save the standard deviation of the headways to compare
+    bif(4,iEq) = sig; % save the standard deviation of the headways to compare
     
     if full
-        save('../data/newtonContinuation2D.mat', 'bif',  'sigma');
+        writematrix(bif, '../results/bifurcation2D.csv');
     else
-        save('../data/1000newtonContinuation2D.mat', 'bif', 'sigma');
+        writematrix(bif, '../results/1000bifurcation2D.csv');
     end
     
     % plot the diagram
@@ -151,10 +154,6 @@ end
             evoCars2 = getHeadways(evo2(end, 1:numCars)',len);
             sigma = std(evoCars2(1:numCars));
             coord2 = diffMap2D.restrict(evoCars2);
-            
-           % figure; hold on;
-           % scatter(1:30, evoCars(1:30), 'ko');
-           % scatter(1:30, evoCars2(1:30), 'b*');
         end
     end
 

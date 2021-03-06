@@ -8,8 +8,9 @@
 %               actual mu will be uniformly distributed between muMin and muMax
 % tMin =        the minimum time to record the simulation at
 % tMean-        mean of the exponential distribution for the times
-% dataFile-     output file name, should be .mat
-function genTrafficData(dataPoints, v0Min, v0Max, muMin, muMax,tMin, tMean, dataFile)
+% dataFile-     output file name for full data, should be .csv
+% hwaysFile-    output file name for headways, should be .csv
+function genTrafficData(dataPoints, v0Min, v0Max, muMin, muMax,tMin, tMean, dataFile, hwaysFile)
 
 options = odeset('AbsTol',10^-8,'RelTol',10^-8); % ODE 45 options
 rng(18); % set random seed
@@ -42,11 +43,12 @@ for j=1:dataPoints
     allData(j, end-2) = t;
 
     if(mod(j,20)==0)
-        save(dataFile,'allData');  % save the snapshots of the simulation
+        writematrix(allData, dataFile);  % save the snapshots of the simulation
     end
 end
 
 hways = getHeadways(allData(:,1:numCars), len);
-save(dataFile,'allData', 'hways');  % save the snapshots of the simulation
+writematrix(allData, dataFile);
+writematrix(hways, hwaysFile);
 
 end

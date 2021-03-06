@@ -1,7 +1,8 @@
 %% tests how accurate the lifting/restricting operators are
 
 %% load 1D diffusion map data
-load('../data/diffMap1D.mat', 'diffMap1D');
+alignData = readmatrix('../data/alignData.csv');
+diffMap1D = DiffusionMap(alignData, 1, 5);
 
 % test the restriction operator
 [percentError, restricted, restrictDiff] = diffMap1D.testRestrict();
@@ -28,7 +29,8 @@ xlabel('Original Coordinates', 'fontsize', 18);
 ylabel('New Coordinates', 'fontsize', 18);
 
 %% load 2D diffusion map data
-load('../data/diffMap2D.mat', 'diffMap2D');
+ hways = readmatrix('../data/data_headways.csv');
+ diffMap2D = DiffusionMap(hways, 2, 5);
 
 % test the restriction operator
 [percentError, restricted, restrictDiff] = diffMap2D.testRestrict();

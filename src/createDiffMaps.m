@@ -1,17 +1,18 @@
 clear;
 
 %% load traffic data
-load('../data/30data.mat', 'hways', 'allData')
+allData = readmatrix('../data/data_full.csv');
+hways = readmatrix('../data/data_headways.csv');
 
 rng(18);                    % set random seed
 numReduce = 1000;           % number of points to reduce the diffusion map to
 numData = size(hways, 2);   % number of points in the dataset
 numCars = size(hways, 1);   % number of cars
-len = 60;
+len = 60;                   % length of the ring road
 alignTo = 10;               % car to align data to
 weight = 5;                 % median weight to choose epsilon 
-doLinearFit = true;          % compute the linear fit or not
-plotMaps = true;            % plot the diffusion maps or not
+doLinearFit = false;        % compute the linear fit or not
+plotMaps = false;           % plot the diffusion maps or not
 numEigvecs = 30;            % number of evectors to return for the linear fit
 
 %% 1D diffusion map
@@ -21,6 +22,7 @@ alignData = hways;
 for i = 1:numData
     alignData(:,i) = alignMax(alignData(:,i), alignTo);
 end
+writematrix(alignData, '../data/alignData.csv');
 
 % take 1 eigenvector if not doing the linear fit, otherwise compute many
 if ~doLinearFit
@@ -45,12 +47,15 @@ if doLinearFit
     ylabel('r_j', 'FontSize',14);
     title('Local Linear Fit for Eigenvectors for Full 1D Diffusion Map','FontSize',14);
     drawnow;
+    
+    % save r_j values
+    writematrix(r1, '../data/r1.csv');
 
     % reduce diffusion map to 1D
     diffMap1D.evecs = diffMap1D.evecs(:,1);
     diffMap1D.evals = diffMap1D.evals(1);
 end
-save('../data/diffMap1D.mat', 'diffMap1D');
+writematrix(diffMap1D.evecs, '../results/embedding1D.csv');
 
 % plot std vs diff map embedding
 if plotMaps
@@ -90,12 +95,16 @@ if doLinearFit
     ylabel('r_j', 'FontSize',14);
     title('Local Linear Fit for Eigenvectors for Reduced 1D Diffusion Map','FontSize',14);
     drawnow;
+    
+    % save r_j values
+    writematrix(r1, '../results/r1_reduced.csv');
 
     % reduce diffusion map to 1D
     diffMap1D.evecs = diffMap1D.evecs(:,1);
     diffMap1D.evals = diffMap1D.evals(1);
 end
-save('../data/1000diffMap1D.mat', 'diffMap1D', 'newAlignData');
+writematrix(newAlignData, '../data/1000diffMap1D.csv');
+writematrix(diffMap1D.evecs, '../results/1000embedding1D.csv');
 
 % plot the new diffusion map
 if plotMaps
@@ -131,13 +140,15 @@ if doLinearFit
     ylabel('r_j', 'FontSize',14);
     title('Local Linear Fit for Eigenvectors for Full 2D Diffusion Map','FontSize',14);
     drawnow;
+    
+    % save r_j values
+    writematrix(r2, '../results/r2.csv');
 
     % reduce diffusion map to 2D
     diffMap2D.evecs = diffMap2D.evecs(:, 1:2);
     diffMap2D.evals = diffMap2D.evals(1:2,1:2);
 end
-save('../data/diffMap2D.mat', 'diffMap2D');
-
+writematrix(diffMap2D.evecs, '../results/embedding2D.csv');
 
 [~, max1] = max(hways,[],1);  % locate the max headway for each data point
 if plotMaps
@@ -214,11 +225,15 @@ if doLinearFit
     title('Local Linear Fit for Eigenvectors for Reduced 2D Diffusion Map','FontSize',14);
     drawnow;
 
+    % save r_j values
+    writematrix(r2, 'r2_reduced.csv');
+    
     % reduce diffusion map to 2D
     diffMap2D.evecs = diffMap2D.evecs(:, 1:2);
     diffMap2D.evals = diffMap2D.evals(1:2, 1:2);
 end
-save('../data/1000diffMap2D.mat', 'diffMap2D', 'newData');
+writematrix(newData, '../data/1000diffMap2D.csv');
+writematrix(diffMap2D.evecs, '../results/1000embedding2D.csv');
 
 if plotMaps
     % plot eigenvector 1 vs eigenvector 2, colored by max headway location

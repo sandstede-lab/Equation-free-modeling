@@ -5,36 +5,37 @@ h = 2.4;                % optimal velocity parameter
 len = 60;              % length of the ring road
 numCars = 30;           % number of cars
 alignTo = 10;
-tskip = 20;
-delta = 50; 
+tskip = 300;
+delta = 350; 
 options = odeset('AbsTol',10^-8,'RelTol',10^-8);    % ODE 45 options
-lsqOptions = optimset('Display','iter'); %lsqnonlin options
-options2 = optimoptions('lsqnonlin');
-options2.OptimalityTolerance = 1e-11;
-options2.FunctionTolerance = 1e-11;
-options2.Display = 'iter';
+foptions = optimoptions(@fsolve,'Display','iter', 'TolFun',1e-10,'TolX',1e-10);
 full = false;
 k = 3; % number of points to use for lifting 
+numEigvecs = 1;
+weight = 5;
 
 %% load diffusion map data
 if full
-    load('../data/diffMap1D.mat', 'diffMap1D');
-    numSteps = 140;
-    stepSize = 0.0001;
+    alignData = readmatrix('../data/alignData.csv');
+    diffMap1D = DiffusionMap(alignData, numEigvecs, weight);
+    numSteps = 200;
+    stepSize = 0.001;
 else
-    load('../data/1000diffMap1D.mat', 'diffMap1D');
-    numSteps = 78;     
-    stepSize = .001; 
+    newAlignData = readmatrix('../data/1000diffMap1D.csv');
+    diffMap1D = DiffusionMap(newAlignData, numEigvecs, weight);
+    numSteps = 32;     
+    stepSize = .005;
 end
 
 % load the reference states and comparison bifurcation diagram
-load('../data/microBif.mat', 'bif');
+bif = readmatrix('../results/microBif.csv');
 vel = bif(end, :);
 
-start = 1;
-v0_base2 = vel(start+1);
+start = length(vel)-1;
+change = -1;
+v0_base2 = vel(start+change);
 v0_base1 = vel(start);
-ref_2 = bif(1:numCars,start+1);
+ref_2 = bif(1:numCars,start+change);
 ref_1 = bif(1:numCars,start);
 sigma_2 = std(ref_2);
 sigma_1 = std(ref_1);
@@ -53,8 +54,7 @@ scatter(v0_base1, sigma_1, 400,'k.'); drawnow;
 scatter(v0_base2, sigma_2, 400,'k.'); drawnow;
 
 %% initialize secant continuation                              
-bif = zeros(2,numSteps);                       % array to hold the bifurcation values
-sigma = zeros(1,numSteps);
+bif = zeros(3,numSteps);                       % array to hold the bifurcation values
 
 %% pseudo arc length continuation
 for iEq=1:numSteps
@@ -62,9 +62,8 @@ for iEq=1:numSteps
     w = [psi_2 - psi_1 ; v0_base2 - v0_base1];          % slope of the secant line
     newGuess = [psi_2; v0_base2] + stepSize *(w/norm(w)); % first guess on the secant line
      
-    u = lsqnonlin(@(u)FW(u, diffMap1D ,w, newGuess), newGuess,...
-        [min(diffMap1D.evecs) 0.9],[max(diffMap1D.evecs) 1.2],options2);
-    [u(1), sig] = ler(u(1), diffMap1D, u(2));
+    u = fsolve(@(u)FW(u, diffMap1D ,w, newGuess), newGuess, foptions);
+    [bif(1,iEq), sig] = ler(u(1), diffMap1D, u(2));
     scatter(u(2), sig, 'b*'); drawnow;                          % plot the bifurcation diagram as it grows
     
     %% reset the values for the arc length continuation
@@ -72,12 +71,12 @@ for iEq=1:numSteps
     v0_base1 = v0_base2;
     v0_base2 = u(2);
     psi_2 = u(1);                                             % find the new reference state
-    bif(:,iEq) = [psi_2 ; v0_base2];                          % save the new solution
-    sigma(iEq) = sig;
+    bif(2,iEq) = v0_base2;                          % save the new solution
+    bif(3, iEq) = sig;
     if full
-        save('../data/newtonContinuation1D.mat', 'bif', 'sigma');
+        writematrix(bif, '../results/bifurcation1D.csv');
     else
-        save('../data/1000newtonContinuation1D.mat', 'bif', 'sigma');
+        writematrix(bif, '../results/1000bifurcation1D.csv');
     end
 end
 

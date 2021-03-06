@@ -2,15 +2,14 @@ function eqFreeBifurcation()
     h = 2.4;                % optimal velocity parameter
     len = 60;               % length of the ring road
     numCars = 30;           % number of cars
-    tskip = 100;            % times for evolving
-    delta = 1000;           
+    tskip = 300;            % times for evolving
+    delta = 350;           
     stepSize = .0025;        % step size for the secant line approximation
     tolerance = 10^(-7);    % tolerance for Newton's method
 
     % load the reference states if they have already been calculated
-    load('../data/microBif.mat', 'bif');
-    oldBif = bif;
-    vel = bif(end, :);
+    oldBif = readmatrix('../results/microBif.csv');
+    vel = oldBif(end, :);
     
     start = 1;
     ref_2 = oldBif(1:numCars, start+1);   % initial profiles
@@ -19,9 +18,8 @@ function eqFreeBifurcation()
     v0_base2 = vel(1 + start);
     
     %% initialize secant continuation
-    steps = 100;                                % number of steps to take around the curve
+    steps = 70;                                % number of steps to take around the curve
     bif = zeros(2,steps);                       % array to hold the bifurcation values
-    actuals = zeros(2,steps);
 
     figure; hold on; % draw the bifurcation diagram
     scatter(vel(start:end), std(oldBif(1:numCars,start:end)), 200, 'r.');
@@ -53,20 +51,19 @@ function eqFreeBifurcation()
             k = k + 1;
         end  
         
-        bif(:,iEq) = u;                                             % save the new solution
-
+ 
         %% reset the values for the arc length continuation
         ref_1 = ref_2;
         sigma_1 = sigma_2;
         v0_base1 = v0_base2;
         v0_base2 = u(2);
         [sigma_2,ref_2] = ler(u(1),ref_1,tskip+delta,1,u(2));       % find the new reference state
-        actuals(:,iEq) = [sigma_2 u(2)];
+        bif(:,iEq) = [sigma_2 u(2)];
         hold on;
-        scatter(u(2), std(getHeadways(ref_2(1:numCars), len)), 400, 'b.'); drawnow; %% plot the bifurcation diagram
+        scatter(u(2),sigma_2, 400, 'b.'); drawnow; %% plot the bifurcation diagram
  
     end
-    save('../data/origEqFree.mat', 'bif', 'actuals');
+    writematrix(bif, '../results/origEqFree.csv');
 
     
     %% functions
