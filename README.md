@@ -13,7 +13,7 @@ In this work, we use diffuson maps to identify macroscopic variables in a traffi
 **3) results** contains .csv files of results 
  
 ## Generate traffic data
-Data used in the diffusion maps is created with genTrafficData.m, and saved in the /data directory. 
+Data used in the diffusion maps is created with genTrafficData.m and saved in the /data directory. 
 
 ## Compute a diffusion map
 Diffusoin maps for the traffic data are computed with and explored through createDiffMaps.m.
