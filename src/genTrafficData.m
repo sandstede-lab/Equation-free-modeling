@@ -1,5 +1,5 @@
 %% Generates data for traffic
-% genTrafficData(10000, 0.96, 1.1, 0.1, 3.5, 500, 10000, '../data/30data.mat')
+% genTrafficData(10000, 0.96, 1.1, 0.1, 3.5, 500, 10000, '../data/data_full.csv',  '../data/data_headways.csv')
 % dataPoints-   number of different simulations to run
 % v0Min-        min v0 to run each simulation
 % v0Max-        max v0 to run each simulation
