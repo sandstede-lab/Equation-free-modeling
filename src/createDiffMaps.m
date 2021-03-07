@@ -4,6 +4,9 @@ clear;
 allData = readmatrix('../data/data_full.csv');
 hways = readmatrix('../data/data_headways.csv');
 
+figure;
+scatter(allData(:,end), std(hways));
+
 rng(18);                    % set random seed
 numReduce = 1000;           % number of points to reduce the diffusion map to
 numData = size(hways, 2);   % number of points in the dataset
@@ -11,8 +14,8 @@ numCars = size(hways, 1);   % number of cars
 len = 60;                   % length of the ring road
 alignTo = 10;               % car to align data to
 weight = 5;                 % median weight to choose epsilon 
-doLinearFit = false;        % compute the linear fit or not
-plotMaps = false;           % plot the diffusion maps or not
+doLinearFit = true;        % compute the linear fit or not
+plotMaps = true;           % plot the diffusion maps or not
 numEigvecs = 30;            % number of evectors to return for the linear fit
 
 %% 1D diffusion map
@@ -49,7 +52,7 @@ if doLinearFit
     drawnow;
     
     % save r_j values
-    writematrix(r1, '../data/r1.csv');
+    writematrix(r1, '../results/r1.csv');
 
     % reduce diffusion map to 1D
     diffMap1D.evecs = diffMap1D.evecs(:,1);
@@ -72,6 +75,12 @@ keep = floor(linspace(1, numData, numReduce));
 % subset data
 sortedData = diffMap1D.data(:, idx);
 newAlignData = sortedData(:, keep);
+
+figure;
+vel = allData(idx, end);
+vel = vel(keep);
+scatter(vel, std(newAlignData));
+
 
 %% rerun diffMap with these points
 if doLinearFit
@@ -179,7 +188,7 @@ end
 n = sqrt(diffMap2D.evecs(:,1).^2 + diffMap2D.evecs(:,2).^2);
 ray = atan2(diffMap2D.evecs(:,2), diffMap2D.evecs(:,1));
 
-% sort the diffusion map by radial coordinate and only keep 2*nReduce points evenly spaced
+% sort the diffusion map by radial coordinate and only keep some points evenly spaced
 [~,idx] = sort(n);
 keep = floor(linspace(1, numData, 2*numReduce));
 % subset angles
@@ -226,7 +235,7 @@ if doLinearFit
     drawnow;
 
     % save r_j values
-    writematrix(r2, 'r2_reduced.csv');
+    writematrix(r2, '../results/r2_reduced.csv');
     
     % reduce diffusion map to 2D
     diffMap2D.evecs = diffMap2D.evecs(:, 1:2);
