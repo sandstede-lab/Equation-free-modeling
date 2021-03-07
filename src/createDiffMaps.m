@@ -72,15 +72,6 @@ keep = floor(linspace(1, numData, numReduce));
 % subset data
 sortedData = diffMap1D.data(:, idx);
 newAlignData = sortedData(:, keep);
-% subset original data
-newData = allData(idx, :);
-newData = newData(keep,:);
-
-if plotMaps
-    figure;
-    vel = newData(:, end);
-    scatter(vel, std(newAlignData));
-end
 
 %% rerun diffMap with these points
 if doLinearFit

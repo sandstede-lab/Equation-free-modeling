@@ -9,7 +9,7 @@ tskip = 300;
 delta = 350; 
 options = odeset('AbsTol',10^-8,'RelTol',10^-8);    % ODE 45 options
 foptions = optimoptions(@fsolve,'Display','iter', 'TolFun',1e-10,'TolX',1e-10);
-full = false;
+full = true;
 k = 3; % number of points to use for lifting 
 numEigvecs = 1;
 weight = 5;
@@ -29,22 +29,30 @@ end
 
 % load the reference states and comparison bifurcation diagram
 bif = readmatrix('../results/microBif.csv');
+
 vel = bif(end, :);
+refs =bif(1:numCars,:);
+for i=1:size(bif,2)
+   refs(:, i) =  alignMax(refs(:,i), alignTo);
+end
+embed = diffMap1D.restrict(refs);
+% save embedding of micro system
+if full
+    writematrix([embed', vel'], '../results/micro1D.csv');
+else
+    writematrix([embed', vel'], '../results/1000micro1D.csv');
+end
 
 start = length(vel);
 change = -1;
 v0_base2 = vel(start+change);
 v0_base1 = vel(start);
-ref_2 = bif(1:numCars,start+change);
-ref_1 = bif(1:numCars,start);
-sigma_2 = std(ref_2);
-sigma_1 = std(ref_1);
-ref_2 = alignMax(ref_2, alignTo);
-ref_1 = alignMax(ref_1, alignTo);
+sigma_2 = std(refs(start + change));
+sigma_1 = std(refs(start));
 
 %initial psi values for secant line approximation
-psi_1 = diffMap1D.restrict(ref_1);
-psi_2 = diffMap1D.restrict(ref_2);
+psi_1 = embed(start);
+psi_2 = embed(start + change);
 
 % draw the reference bifurcation diagrams
 oldBif = bif;

@@ -22,15 +22,21 @@ else
     newData = readmatrix('../data/1000data2D.csv');
     diffMap2D = DiffusionMap(newData, numEigvecs, weight);
     stepSize = 0.002; 
-    steps = 205;
+    steps = 182;
 end
 
 % load the reference states and previous bifurcation diagram
 bif = readmatrix('../results/microBif.csv');
-vel = bif(end, :);
 embed = diffMap2D.restrict(bif(1:numCars,:));
+vel = bif(end, :);
 n = sqrt(embed(1,:).^2 + embed(2,:).^2);
 T = -numCars./bif(numCars+ 1,:);
+% save embedding of micro system
+if full
+    writematrix([n', T', vel'], '../results/micro2D.csv');
+else
+    writematrix([n', T', vel'], '../results/1000micro2D.csv');
+end
 
 start = length(vel);
 change = -1;
