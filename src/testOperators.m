@@ -6,6 +6,8 @@ diffMap1D = DiffusionMap(alignData, 1, 5);
 
 % test the restriction operator
 [percentError, restricted, restrictDiff] = diffMap1D.testRestrict();
+writematrix([percentError, restricted, restrictDiff], '../results/restrictTest1D.csv');
+disp('Accuracy for the 1D restriction operator');
 disp(mean(percentError)); 
 
 figure; % plot the differences
@@ -17,6 +19,8 @@ ylabel('Restricted Coordinate', 'fontsize', 12);
 
 % test the lift operator 
 [percentError, restricted, restrictDiff] = diffMap1D.testLift(3);
+writematrix([percentError, restricted, restrictDiff], '../results/lifttTest1D.csv');
+disp('Accuracy for the 1D lifting operator');
 disp(mean(percentError)); 
 
 figure; % plot the differences
@@ -29,11 +33,13 @@ xlabel('Original Coordinates', 'fontsize', 18);
 ylabel('New Coordinates', 'fontsize', 18);
 
 %% load 2D diffusion map data
- hways = readmatrix('../data/data_headways.csv');
- diffMap2D = DiffusionMap(hways, 2, 5);
+hways = readmatrix('../data/data_headways.csv');
+diffMap2D = DiffusionMap(hways, 2, 5);
 
 % test the restriction operator
 [percentError, restricted, restrictDiff] = diffMap2D.testRestrict();
+writematrix([percentError, restricted, restrictDiff], '../results/restrictTest2D.csv');
+disp('Accuracy for the 2D restriction operator');
 disp(mean(percentError)); 
 
 figure;
@@ -44,6 +50,8 @@ xlabel('\psi_1', 'fontsize', 12);
 
 % test the lifting operator
 [percentError, restricted, restrictDiff] = diffMap2D.testLift(8);
+writematrix([percentError, restricted, restrictDiff], '../results/liftTest2D.csv');
+disp('Accuracy for the 2D lifting operator');
 disp(mean(percentError)); 
 
 figure;

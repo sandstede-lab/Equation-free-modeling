@@ -16,12 +16,12 @@ foptions = optimoptions(@fsolve, 'Display', 'iter');
 if full
     hways = readmatrix('../data/data_headways.csv');
     diffMap2D = DiffusionMap(hways, numEigvecs, weight);
-    stepSize = 0.0005;
-    steps = 100;
+    stepSize = 0.001; 
+    steps = 81;
 else
-    newData = readmatrix('../data/1000diffMap2D.csv');
+    newData = readmatrix('../data/1000data2D.csv');
     diffMap2D = DiffusionMap(newData, numEigvecs, weight);
-    stepSize = 0.002;
+    stepSize = 0.002; 
     steps = 205;
 end
 
@@ -32,12 +32,12 @@ embed = diffMap2D.restrict(bif(1:numCars,:));
 n = sqrt(embed(1,:).^2 + embed(2,:).^2);
 T = -numCars./bif(numCars+ 1,:);
 
-start = length(vel)-1;
+start = length(vel);
 change = -1;
 v0_base2 = vel(start + change);
 v0_base1 = vel(start);
 T1 = T(start);
-T2 = T(start + 1);
+T2 = T(start + change);
 p2 = norm(embed(:, start + change));
 p1 = norm(embed(:, start));
 coord2 = [p2, T1, v0_base2];

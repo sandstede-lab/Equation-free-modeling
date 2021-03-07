@@ -4,9 +4,6 @@ clear;
 allData = readmatrix('../data/data_full.csv');
 hways = readmatrix('../data/data_headways.csv');
 
-figure;
-scatter(allData(:,end), std(hways));
-
 rng(18);                    % set random seed
 numReduce = 1000;           % number of points to reduce the diffusion map to
 numData = size(hways, 2);   % number of points in the dataset
@@ -75,12 +72,15 @@ keep = floor(linspace(1, numData, numReduce));
 % subset data
 sortedData = diffMap1D.data(:, idx);
 newAlignData = sortedData(:, keep);
+% subset original data
+newData = allData(idx, :);
+newData = newData(keep,:);
 
-figure;
-vel = allData(idx, end);
-vel = vel(keep);
-scatter(vel, std(newAlignData));
-
+if plotMaps
+    figure;
+    vel = newData(:, end);
+    scatter(vel, std(newAlignData));
+end
 
 %% rerun diffMap with these points
 if doLinearFit
@@ -112,7 +112,7 @@ if doLinearFit
     diffMap1D.evecs = diffMap1D.evecs(:,1);
     diffMap1D.evals = diffMap1D.evals(1);
 end
-writematrix(newAlignData, '../data/1000diffMap1D.csv');
+writematrix(newAlignData, '../data/1000data1D.csv');
 writematrix(diffMap1D.evecs, '../results/1000embedding1D.csv');
 
 % plot the new diffusion map
@@ -200,6 +200,9 @@ newData = sortedData(:, keep);
 % subset max
 max1000 = max1(idx);
 max1000 = max1000(keep);
+% subset orig data
+fullData = allData(idx, :);
+fullData = fullData(keep,:);
 
 % repeat with second coordinate (angular)
 [~, idx] = sort(ray);
@@ -241,7 +244,7 @@ if doLinearFit
     diffMap2D.evecs = diffMap2D.evecs(:, 1:2);
     diffMap2D.evals = diffMap2D.evals(1:2, 1:2);
 end
-writematrix(newData, '../data/1000diffMap2D.csv');
+writematrix(newData, '../data/1000data2D.csv');
 writematrix(diffMap2D.evecs, '../results/1000embedding2D.csv');
 
 if plotMaps

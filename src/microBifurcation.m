@@ -43,7 +43,7 @@ hways1 = getHeadways(ref_1(1:numCars), len);
 hways2 = getHeadways(ref_2(1:numCars), len);
 
 %% Bifurcation on micro
-steps = 142;
+steps = 141;
 stepSize = 0.025;
 cguess = -0.8581;
 

@@ -2,7 +2,7 @@ function eqFreeDiffBifurcation()
 clear workspace;
 
 h = 2.4;                % optimal velocity parameter
-len = 60;              % length of the ring road
+len = 60;               % length of the ring road
 numCars = 30;           % number of cars
 alignTo = 10;
 tskip = 300;
@@ -18,20 +18,20 @@ weight = 5;
 if full
     alignData = readmatrix('../data/alignData.csv');
     diffMap1D = DiffusionMap(alignData, numEigvecs, weight);
-    numSteps = 200;
-    stepSize = 0.001;
+    numSteps = 283;     
+    stepSize = .0005; %paremeters for 5000
 else
-    newAlignData = readmatrix('../data/1000diffMap1D.csv');
+    newAlignData = readmatrix('../data/1000data1D.csv');
     diffMap1D = DiffusionMap(newAlignData, numEigvecs, weight);
     numSteps = 32;     
-    stepSize = .005;
+    stepSize = .005; %paremeters for 1000
 end
 
 % load the reference states and comparison bifurcation diagram
 bif = readmatrix('../results/microBif.csv');
 vel = bif(end, :);
 
-start = length(vel)-1;
+start = length(vel);
 change = -1;
 v0_base2 = vel(start+change);
 v0_base1 = vel(start);

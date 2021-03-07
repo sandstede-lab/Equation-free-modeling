@@ -108,10 +108,6 @@ classdef DiffusionMap
             percentError = zeros(numRestrict,1);
             
             for i = 1:numRestrict
-                if mod(i, 500)==0
-                    disp(i);
-                end
-                
                 % restrict this point then measure how far it is from its
                 % true embedding
                 restricted(i, :) = restrictVal(obj,obj.data(:,i), i); 
@@ -129,10 +125,6 @@ classdef DiffusionMap
             percentError = zeros(numRestrict,1);
             
             for i=1:numRestrict
-                if mod(i, 500)==0
-                    disp(i);
-                end
-   
                 % lift this point then restrict it to see how different it
                 % is from the original embedding
                 lifted = lift(obj, obj.evecs(i, :)', k);  
