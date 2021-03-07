@@ -47,7 +47,7 @@ for j=1:dataPoints
     end
 end
 
-hways = getHeadways(allData(:,1:numCars), len);
+hways = getHeadways(allData(:,1:numCars)', len);
 writematrix(allData, dataFile);
 writematrix(hways, hwaysFile);
 
