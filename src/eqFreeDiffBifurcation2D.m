@@ -17,7 +17,7 @@ if full
     hways = readmatrix('../data/data_headways.csv');
     diffMap2D = DiffusionMap(hways, numEigvecs, weight);
     stepSize = 0.001; 
-    steps = 81;
+    steps = 96;
 else
     newData = readmatrix('../data/1000data2D.csv');
     diffMap2D = DiffusionMap(newData, numEigvecs, weight);
@@ -46,8 +46,8 @@ T1 = T(start);
 T2 = T(start + change);
 p2 = norm(embed(:, start + change));
 p1 = norm(embed(:, start));
-coord2 = [p2, T1, v0_base2];
-coord1 = [p1, T2, v0_base1];
+coord2 = [p2, T2, v0_base2];
+coord1 = [p1, T1, v0_base1];
 rayAngle = 0;
 
 % draw the bifurcation diagrams
