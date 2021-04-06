@@ -1,8 +1,9 @@
 clear;
 
 %% load traffic data
-allData = readmatrix('../data/data_full.csv');
-hways = readmatrix('../data/data_headways.csv');
+dataDir = 'data';
+allData = readmatrix(sprintf('../%s/data_full.csv', dataDir));
+hways = readmatrix(sprintf('../%s/data_headways.csv', dataDir));
 
 rng(18);                    % set random seed
 numReduce = 1000;           % number of points to reduce the diffusion map to
@@ -22,7 +23,7 @@ alignData = hways;
 for i = 1:numData
     alignData(:,i) = alignMax(alignData(:,i), alignTo);
 end
-writematrix(alignData, '../data/alignData.csv');
+writematrix(alignData, sprintf('../%s/alignData.csv', dataDir));
 
 % take 1 eigenvector if not doing the linear fit, otherwise compute many
 if ~doLinearFit
@@ -103,7 +104,7 @@ if doLinearFit
     diffMap1D.evecs = diffMap1D.evecs(:,1);
     diffMap1D.evals = diffMap1D.evals(1);
 end
-writematrix(newAlignData, '../data/1000data1D.csv');
+writematrix(newAlignData, sprintf('../%s/1000data1D.csv', dataDir));
 writematrix(diffMap1D.evecs, '../results/1000embedding1D.csv');
 
 % plot the new diffusion map
@@ -235,7 +236,7 @@ if doLinearFit
     diffMap2D.evecs = diffMap2D.evecs(:, 1:2);
     diffMap2D.evals = diffMap2D.evals(1:2, 1:2);
 end
-writematrix(newData, '../data/1000data2D.csv');
+writematrix(newData, sprintf('../%s/1000data2D.csv', dataDir));
 writematrix(diffMap2D.evecs, '../results/1000embedding2D.csv');
 
 if plotMaps
