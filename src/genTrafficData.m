@@ -1,5 +1,5 @@
 %% Generates data for traffic
-% genTrafficData(5000, 0.96, 1.1, 0.1, 3.5, 500, 10000, '../data/data_full.csv',  '../data/data_headways.csv')
+% genTrafficData(5000, 0.96, 1.1, 0, 4.5, 200, 500, '../data/data_full.csv',  '../data/data_headways.csv')
 % dataPoints-   number of different simulations to run
 % v0Min-        min v0 to run each simulation
 % v0Max-        max v0 to run each simulation
@@ -36,8 +36,11 @@ for j=1:dataPoints
         cars(i+numCars) = optimalVelocity(h, len/numCars, v0);
     end
 
-    [~,allTime] = ode45(@microsystem,[0 t],cars, options, [v0 len h]);           % evolve cars
-    allData(j, 1:2*numCars) = allTime(end,:);                                       % record the evolution
+    % evolve cars
+    [~,allTime] = ode45(@microsystem,[0 t],cars, options, [v0 len h]);  
+    
+    % record the evolution and parameters
+    allData(j, 1:2*numCars) = allTime(end,:);       
     allData(j, end) = v0;
     allData(j, end-1) = mu;
     allData(j, end-2) = t;
@@ -48,6 +51,7 @@ for j=1:dataPoints
     end
 end
 
+% save the headways separately 
 hways = getHeadways(allData(:,1:numCars)', len);
 writematrix(allData, dataFile);
 writematrix(hways, hwaysFile);
