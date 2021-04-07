@@ -16,7 +16,6 @@ delta = 240;            % time to evolve for finite difference
 k = 3;                  % number of points to use for lifting
 numEigvecs = 1;         % dimension of the embedding
 weight = 5;             % weight for the diffusion map
-stepSize = .0025;       % continuation step size
 options = odeset('AbsTol',10^-8,'RelTol',10^-8);    % ODE 45 settings
 foptions = optimoptions(@fsolve,'Display','iter', ... % fsolve settings
     'TolFun',1e-12,'TolX',1e-12);
@@ -25,11 +24,13 @@ foptions = optimoptions(@fsolve,'Display','iter', ... % fsolve settings
 if full
     alignData = readmatrix('../data/alignData.csv');
     diffMap1D = DiffusionMap(alignData, numEigvecs, weight);
+    stepSize = .0025;
     numSteps = 39;
 else
     newAlignData = readmatrix('../data/1000data1D.csv');
     diffMap1D = DiffusionMap(newAlignData, numEigvecs, weight);
-    numSteps = 55;
+    stepSize = 0.01;
+    numSteps = 15;
 end
 
 %% load the reference states and comparison bifurcation diagram
