@@ -15,7 +15,6 @@ nPeriod = 7;            % time to evolve for finite difference
 k = 8;                  % number of points to use for lifting
 numEigvecs = 2;         % dimension of the embedding
 weight = 5;             % weight for the diffusion map
-stepSize = .0025;       % continuation step size
 foptions = optimoptions(@fsolve, 'Display', 'iter');% fsolve settings
 options = odeset('AbsTol',10^-8,'RelTol',10^-8);    % ODE 45 settings
 
@@ -23,11 +22,13 @@ options = odeset('AbsTol',10^-8,'RelTol',10^-8);    % ODE 45 settings
 if full
     hways = readmatrix('../data/data_headways.csv');
     diffMap2D = DiffusionMap(hways, numEigvecs, weight);
+    stepSize = .0025;       
     steps = 35;
 else
     newData = readmatrix('../data/1000data2D.csv');
     diffMap2D = DiffusionMap(newData, numEigvecs, weight);
-    steps = 220;
+    stepSize = .01;      
+    steps = 49;
 end
 
 %% load the reference states and previous bifurcation diagram
