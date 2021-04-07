@@ -3,7 +3,7 @@ function eqFreeBifurcation()
     len = 60;               % length of the ring road
     numCars = 30;           % number of cars
     tskip = 300;            % times for evolving
-    delta = 350;           
+    delta = 240;           
     stepSize = .0025;        % step size for the secant line approximation
     tolerance = 10^(-7);    % tolerance for Newton's method
 
