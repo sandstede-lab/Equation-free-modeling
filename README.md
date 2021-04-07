@@ -8,7 +8,7 @@ In this work, we use diffuson maps to identify macroscopic variables in a traffi
 
 **1) src** contains the source code  
 
-**2) data** contains raw data files in .csv files
+**2) data** contains raw data in .csv files
 
 **3) results** contains .csv files of results 
  
@@ -16,7 +16,7 @@ In this work, we use diffuson maps to identify macroscopic variables in a traffi
 Data used in the diffusion maps is created with genTrafficData.m and saved in the /data directory. 
 
 ## Compute a diffusion map
-Diffusoin maps for the traffic data are computed with and explored through createDiffMaps.m.
+Diffusion maps for the traffic data are computed with and explored through createDiffMaps.m.
 
 ## Test the lifting and restriction operators
 We test the accuracy of the lifting and restriction operators with the script testOperators.m.
@@ -29,6 +29,9 @@ We test the accuracy of the lifting and restriction operators with the script te
 **3)** Using a 1D diffusion map applied to phase-shifted traffic profiles: eqFreeDiffBifurcation.m
 
 **4)** Using a 2D diffusion map applied to traffic profiles: eqFreeDiffBifurcation2D.m 
+
+## Visualizing results
+Plot all results in plot_eq_free.ipynb
 
 **BibTex Citation:**  
 ```
