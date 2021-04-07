@@ -25,7 +25,7 @@ foptions = optimoptions(@fsolve,'Display','iter', ... % fsolve settings
 if full
     alignData = readmatrix('../data/alignData.csv');
     diffMap1D = DiffusionMap(alignData, numEigvecs, weight);
-    numSteps = 42;
+    numSteps = 39;
 else
     newAlignData = readmatrix('../data/1000data1D.csv');
     diffMap1D = DiffusionMap(newAlignData, numEigvecs, weight);
